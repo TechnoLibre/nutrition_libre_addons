@@ -270,12 +270,10 @@ class Migration:
         if self.dct_tbanimators:
             return
         dct_tbanimators = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbAnimators"
         lst_tbl_tbanimators = self.dct_tbl.get(table_name)
 
-        for tbanimators in lst_tbl_tbanimators:
-            i += 1
+        for i, tbanimators in enumerate(lst_tbl_tbanimators):
             pos_id = f"{i}/{len(lst_tbl_tbanimators)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -311,12 +309,10 @@ class Migration:
         if self.dct_tbcontents:
             return
         dct_tbcontents = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbContents"
         lst_tbl_tbcontents = self.dct_tbl.get(table_name)
 
-        for tbcontents in lst_tbl_tbcontents:
-            i += 1
+        for i, tbcontents in enumerate(lst_tbl_tbcontents):
             pos_id = f"{i}/{len(lst_tbl_tbcontents)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -352,12 +348,10 @@ class Migration:
         if self.dct_tbcouponalloweditems:
             return
         dct_tbcouponalloweditems = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbCouponAllowedItems"
         lst_tbl_tbcouponalloweditems = self.dct_tbl.get(table_name)
 
-        for tbcouponalloweditems in lst_tbl_tbcouponalloweditems:
-            i += 1
+        for i, tbcouponalloweditems in enumerate(lst_tbl_tbcouponalloweditems):
             pos_id = f"{i}/{len(lst_tbl_tbcouponalloweditems)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -395,12 +389,10 @@ class Migration:
         if self.dct_tbcoupons:
             return
         dct_tbcoupons = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbCoupons"
         lst_tbl_tbcoupons = self.dct_tbl.get(table_name)
 
-        for tbcoupons in lst_tbl_tbcoupons:
-            i += 1
+        for i, tbcoupons in enumerate(lst_tbl_tbcoupons):
             pos_id = f"{i}/{len(lst_tbl_tbcoupons)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -436,12 +428,10 @@ class Migration:
         if self.dct_tbexpensecategories:
             return
         dct_tbexpensecategories = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbExpenseCategories"
         lst_tbl_tbexpensecategories = self.dct_tbl.get(table_name)
 
-        for tbexpensecategories in lst_tbl_tbexpensecategories:
-            i += 1
+        for i, tbexpensecategories in enumerate(lst_tbl_tbexpensecategories):
             pos_id = f"{i}/{len(lst_tbl_tbexpensecategories)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -479,12 +469,10 @@ class Migration:
         if self.dct_tbgalleryitems:
             return
         dct_tbgalleryitems = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbGalleryItems"
         lst_tbl_tbgalleryitems = self.dct_tbl.get(table_name)
 
-        for tbgalleryitems in lst_tbl_tbgalleryitems:
-            i += 1
+        for i, tbgalleryitems in enumerate(lst_tbl_tbgalleryitems):
             pos_id = f"{i}/{len(lst_tbl_tbgalleryitems)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -520,12 +508,12 @@ class Migration:
         if self.dct_tbknowledgeanswerchoices:
             return
         dct_tbknowledgeanswerchoices = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbKnowledgeAnswerChoices"
         lst_tbl_tbknowledgeanswerchoices = self.dct_tbl.get(table_name)
 
-        for tbknowledgeanswerchoices in lst_tbl_tbknowledgeanswerchoices:
-            i += 1
+        for i, tbknowledgeanswerchoices in enumerate(
+            lst_tbl_tbknowledgeanswerchoices
+        ):
             pos_id = f"{i}/{len(lst_tbl_tbknowledgeanswerchoices)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -563,12 +551,12 @@ class Migration:
         if self.dct_tbknowledgeanswerresults:
             return
         dct_tbknowledgeanswerresults = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbKnowledgeAnswerResults"
         lst_tbl_tbknowledgeanswerresults = self.dct_tbl.get(table_name)
 
-        for tbknowledgeanswerresults in lst_tbl_tbknowledgeanswerresults:
-            i += 1
+        for i, tbknowledgeanswerresults in enumerate(
+            lst_tbl_tbknowledgeanswerresults
+        ):
             pos_id = f"{i}/{len(lst_tbl_tbknowledgeanswerresults)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -606,12 +594,10 @@ class Migration:
         if self.dct_tbknowledgequestions:
             return
         dct_tbknowledgequestions = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbKnowledgeQuestions"
         lst_tbl_tbknowledgequestions = self.dct_tbl.get(table_name)
 
-        for tbknowledgequestions in lst_tbl_tbknowledgequestions:
-            i += 1
+        for i, tbknowledgequestions in enumerate(lst_tbl_tbknowledgequestions):
             pos_id = f"{i}/{len(lst_tbl_tbknowledgequestions)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -649,12 +635,12 @@ class Migration:
         if self.dct_tbknowledgetestresults:
             return
         dct_tbknowledgetestresults = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbKnowledgeTestResults"
         lst_tbl_tbknowledgetestresults = self.dct_tbl.get(table_name)
 
-        for tbknowledgetestresults in lst_tbl_tbknowledgetestresults:
-            i += 1
+        for i, tbknowledgetestresults in enumerate(
+            lst_tbl_tbknowledgetestresults
+        ):
             pos_id = f"{i}/{len(lst_tbl_tbknowledgetestresults)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -692,12 +678,10 @@ class Migration:
         if self.dct_tbknowledgetests:
             return
         dct_tbknowledgetests = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbKnowledgeTests"
         lst_tbl_tbknowledgetests = self.dct_tbl.get(table_name)
 
-        for tbknowledgetests in lst_tbl_tbknowledgetests:
-            i += 1
+        for i, tbknowledgetests in enumerate(lst_tbl_tbknowledgetests):
             pos_id = f"{i}/{len(lst_tbl_tbknowledgetests)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -733,12 +717,10 @@ class Migration:
         if self.dct_tbmailtemplates:
             return
         dct_tbmailtemplates = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbMailTemplates"
         lst_tbl_tbmailtemplates = self.dct_tbl.get(table_name)
 
-        for tbmailtemplates in lst_tbl_tbmailtemplates:
-            i += 1
+        for i, tbmailtemplates in enumerate(lst_tbl_tbmailtemplates):
             pos_id = f"{i}/{len(lst_tbl_tbmailtemplates)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -854,16 +836,14 @@ class Migration:
         if self.dct_tbstoreitemcontentpackagemappings:
             return
         dct_tbstoreitemcontentpackagemappings = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreItemContentPackageMappings"
         lst_tbl_tbstoreitemcontentpackagemappings = self.dct_tbl.get(
             table_name
         )
 
-        for (
-            tbstoreitemcontentpackagemappings
-        ) in lst_tbl_tbstoreitemcontentpackagemappings:
-            i += 1
+        for i, tbstoreitemcontentpackagemappings in enumerate(
+            lst_tbl_tbstoreitemcontentpackagemappings
+        ):
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontentpackagemappings)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -903,12 +883,12 @@ class Migration:
         if self.dct_tbstoreitemcontentpackages:
             return
         dct_tbstoreitemcontentpackages = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreItemContentPackages"
         lst_tbl_tbstoreitemcontentpackages = self.dct_tbl.get(table_name)
 
-        for tbstoreitemcontentpackages in lst_tbl_tbstoreitemcontentpackages:
-            i += 1
+        for i, tbstoreitemcontentpackages in enumerate(
+            lst_tbl_tbstoreitemcontentpackages
+        ):
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontentpackages)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -946,12 +926,10 @@ class Migration:
         if self.dct_tbstoreitemcontents:
             return
         dct_tbstoreitemcontents = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreItemContents"
         lst_tbl_tbstoreitemcontents = self.dct_tbl.get(table_name)
 
-        for tbstoreitemcontents in lst_tbl_tbstoreitemcontents:
-            i += 1
+        for i, tbstoreitemcontents in enumerate(lst_tbl_tbstoreitemcontents):
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontents)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -989,12 +967,12 @@ class Migration:
         if self.dct_tbstoreitemcontenttypes:
             return
         dct_tbstoreitemcontenttypes = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreItemContentTypes"
         lst_tbl_tbstoreitemcontenttypes = self.dct_tbl.get(table_name)
 
-        for tbstoreitemcontenttypes in lst_tbl_tbstoreitemcontenttypes:
-            i += 1
+        for i, tbstoreitemcontenttypes in enumerate(
+            lst_tbl_tbstoreitemcontenttypes
+        ):
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontenttypes)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1032,12 +1010,10 @@ class Migration:
         if self.dct_tbstoreitempictures:
             return
         dct_tbstoreitempictures = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreItemPictures"
         lst_tbl_tbstoreitempictures = self.dct_tbl.get(table_name)
 
-        for tbstoreitempictures in lst_tbl_tbstoreitempictures:
-            i += 1
+        for i, tbstoreitempictures in enumerate(lst_tbl_tbstoreitempictures):
             pos_id = f"{i}/{len(lst_tbl_tbstoreitempictures)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1075,12 +1051,10 @@ class Migration:
         if self.dct_tbstoreitems:
             return
         dct_tbstoreitems = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreItems"
         lst_tbl_tbstoreitems = self.dct_tbl.get(table_name)
 
-        for tbstoreitems in lst_tbl_tbstoreitems:
-            i += 1
+        for i, tbstoreitems in enumerate(lst_tbl_tbstoreitems):
             pos_id = f"{i}/{len(lst_tbl_tbstoreitems)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1116,12 +1090,10 @@ class Migration:
         if self.dct_tbstoreitemtaxes:
             return
         dct_tbstoreitemtaxes = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreItemTaxes"
         lst_tbl_tbstoreitemtaxes = self.dct_tbl.get(table_name)
 
-        for tbstoreitemtaxes in lst_tbl_tbstoreitemtaxes:
-            i += 1
+        for i, tbstoreitemtaxes in enumerate(lst_tbl_tbstoreitemtaxes):
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemtaxes)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1157,12 +1129,12 @@ class Migration:
         if self.dct_tbstoreitemtrainingcourses:
             return
         dct_tbstoreitemtrainingcourses = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreItemTrainingCourses"
         lst_tbl_tbstoreitemtrainingcourses = self.dct_tbl.get(table_name)
 
-        for tbstoreitemtrainingcourses in lst_tbl_tbstoreitemtrainingcourses:
-            i += 1
+        for i, tbstoreitemtrainingcourses in enumerate(
+            lst_tbl_tbstoreitemtrainingcourses
+        ):
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemtrainingcourses)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1200,12 +1172,10 @@ class Migration:
         if self.dct_tbstoreitemvariants:
             return
         dct_tbstoreitemvariants = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreItemVariants"
         lst_tbl_tbstoreitemvariants = self.dct_tbl.get(table_name)
 
-        for tbstoreitemvariants in lst_tbl_tbstoreitemvariants:
-            i += 1
+        for i, tbstoreitemvariants in enumerate(lst_tbl_tbstoreitemvariants):
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemvariants)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1243,14 +1213,12 @@ class Migration:
         if self.dct_tbstoreshoppingcartitemcoupons:
             return
         dct_tbstoreshoppingcartitemcoupons = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItemCoupons"
         lst_tbl_tbstoreshoppingcartitemcoupons = self.dct_tbl.get(table_name)
 
-        for (
-            tbstoreshoppingcartitemcoupons
-        ) in lst_tbl_tbstoreshoppingcartitemcoupons:
-            i += 1
+        for i, tbstoreshoppingcartitemcoupons in enumerate(
+            lst_tbl_tbstoreshoppingcartitemcoupons
+        ):
             pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitemcoupons)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1290,12 +1258,12 @@ class Migration:
         if self.dct_tbstoreshoppingcartitems:
             return
         dct_tbstoreshoppingcartitems = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItems"
         lst_tbl_tbstoreshoppingcartitems = self.dct_tbl.get(table_name)
 
-        for tbstoreshoppingcartitems in lst_tbl_tbstoreshoppingcartitems:
-            i += 1
+        for i, tbstoreshoppingcartitems in enumerate(
+            lst_tbl_tbstoreshoppingcartitems
+        ):
             pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitems)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1333,14 +1301,12 @@ class Migration:
         if self.dct_tbstoreshoppingcartitemtaxes:
             return
         dct_tbstoreshoppingcartitemtaxes = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItemTaxes"
         lst_tbl_tbstoreshoppingcartitemtaxes = self.dct_tbl.get(table_name)
 
-        for (
-            tbstoreshoppingcartitemtaxes
-        ) in lst_tbl_tbstoreshoppingcartitemtaxes:
-            i += 1
+        for i, tbstoreshoppingcartitemtaxes in enumerate(
+            lst_tbl_tbstoreshoppingcartitemtaxes
+        ):
             pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitemtaxes)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1380,12 +1346,10 @@ class Migration:
         if self.dct_tbstoreshoppingcarts:
             return
         dct_tbstoreshoppingcarts = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCarts"
         lst_tbl_tbstoreshoppingcarts = self.dct_tbl.get(table_name)
 
-        for tbstoreshoppingcarts in lst_tbl_tbstoreshoppingcarts:
-            i += 1
+        for i, tbstoreshoppingcarts in enumerate(lst_tbl_tbstoreshoppingcarts):
             pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcarts)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1423,12 +1387,10 @@ class Migration:
         if self.dct_tbtrainingcourses:
             return
         dct_tbtrainingcourses = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbTrainingCourses"
         lst_tbl_tbtrainingcourses = self.dct_tbl.get(table_name)
 
-        for tbtrainingcourses in lst_tbl_tbtrainingcourses:
-            i += 1
+        for i, tbtrainingcourses in enumerate(lst_tbl_tbtrainingcourses):
             pos_id = f"{i}/{len(lst_tbl_tbtrainingcourses)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1464,14 +1426,10 @@ class Migration:
         if self.dct_tbusers:
             return
         dct_tbusers = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbUsers"
         lst_tbl_tbusers = self.dct_tbl.get(table_name)
 
-        mailing_list_id = env.ref("mass_mailing.mailing_list_data")
-
-        for tbusers in lst_tbl_tbusers:
-            i += 1
+        for i, tbusers in enumerate(lst_tbl_tbusers):
             pos_id = f"{i}/{len(lst_tbl_tbusers)}"
 
             if DEBUG_LIMIT and i > LIMIT:
