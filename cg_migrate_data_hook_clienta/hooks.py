@@ -19,7 +19,7 @@ FILE_PATH = f"{BACKUP_PATH}/document/doc"
 DEBUG_LIMIT = False
 LIMIT = 20
 GENERIC_EMAIL = f"%s_membre@exemple.ca"
-DEFAULT_SELL_USER_ID = 2 # or 8
+DEFAULT_SELL_USER_ID = 2  # or 8
 
 try:
     import pymssql
@@ -774,12 +774,10 @@ class Migration:
         if self.dct_tbstorecategories:
             return
         dct_tbstorecategories = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreCategories"
         lst_tbl_tbstorecategories = self.dct_tbl.get(table_name)
 
-        for tbstorecategories in lst_tbl_tbstorecategories:
-            i += 1
+        for i, tbstorecategories in enumerate(lst_tbl_tbstorecategories):
             pos_id = f"{i}/{len(lst_tbl_tbstorecategories)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -815,12 +813,10 @@ class Migration:
         if self.dct_tbstoreitemanimators:
             return
         dct_tbstoreitemanimators = {}
-        i = 0
         table_name = f"{self.db_name}.dbo.tbStoreItemAnimators"
         lst_tbl_tbstoreitemanimators = self.dct_tbl.get(table_name)
 
-        for tbstoreitemanimators in lst_tbl_tbstoreitemanimators:
-            i += 1
+        for i, tbstoreitemanimators in enumerate(lst_tbl_tbstoreitemanimators):
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemanimators)}"
 
             if DEBUG_LIMIT and i > LIMIT:
@@ -1472,6 +1468,8 @@ class Migration:
         table_name = f"{self.db_name}.dbo.tbUsers"
         lst_tbl_tbusers = self.dct_tbl.get(table_name)
 
+        mailing_list_id = env.ref("mass_mailing.mailing_list_data")
+
         for tbusers in lst_tbl_tbusers:
             i += 1
             pos_id = f"{i}/{len(lst_tbl_tbusers)}"
@@ -1545,7 +1543,6 @@ class Migration:
                     state_id = 1668
 
             # TODO IsAnimator is internal member, else only portal member
-            # TODO support newsletter with ReceiveNewsletter
             # TODO support DateOfBirth
             # TODO support Gender
             # TODO show lastUpdate migration note field LastUpdatedDate + CreatedDate
@@ -1581,6 +1578,66 @@ class Migration:
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
                 f" '{name}' '{email}' id {tbusers.UserID}"
             )
+
+            # Add to mailing list
+            if tbusers.ReceiveNewsletter:
+                value_mailing_list_contact = {
+                    "name": name,
+                    "email": email,
+                    "list_ids": [(4, mailing_list_id.id)],
+                }
+                env["mailing.contact"].create(value_mailing_list_contact)
+
+            # Add message about migration information
+            genre = "femme" if tbusers.Gender else "homme"
+            comment_message = f"Genre : {genre}<br/>"
+            if tbusers.LastUpdatedDate:
+                comment_message += (
+                    "Dernière modification :"
+                    f" {tbusers.LastUpdatedDate.strftime('%Y/%d/%m %H:%M:%S')}<br/>"
+                )
+            if tbusers.DateOfBirth:
+                comment_message += (
+                    "Date de naissance :"
+                    f" {tbusers.DateOfBirth.strftime('%Y/%d/%m')}<br/>"
+                )
+            if tbusers.IsAnimator:
+                comment_message += f"Est un animateur<br/>"
+            if tbusers.Occupation:
+                comment_message += f"Occupation : {tbusers.Occupation}<br/>"
+            comment_value = {
+                "subject": (
+                    "Note de migration - Plateforme ASP.net avant migration"
+                ),
+                "body": f"<p>{comment_message}</p>",
+                "parent_id": False,
+                "message_type": "comment",
+                "author_id": SUPERUSER_ID,
+                "model": "res.partner",
+                "res_id": obj_partner_id.id,
+            }
+            env["mail.message"].create(comment_value)
+
+            # Add memo message
+            # if membre.Memo:
+            #     html_memo = membre.Memo.replace("\n", "<br/>")
+            #     comment_message = (
+            #         f"<b>Mémo avant migration</b><br/>{html_memo}"
+            #     )
+            #
+            #     comment_value = {
+            #         "subject": (
+            #             "Mémo avant migration - Plateforme Espace"
+            #             " Membre"
+            #         ),
+            #         "body": f"<p>{comment_message}</p>",
+            #         "parent_id": False,
+            #         "message_type": "comment",
+            #         "author_id": SUPERUSER_ID,
+            #         "model": "companie.membre",
+            #         "res_id": obj_companie_membre.id,
+            #     }
+            #     env["mail.message"].create(comment_value)
 
             if tbusers.UserID == DEFAULT_SELL_USER_ID:
                 value = {
