@@ -58,7 +58,7 @@ def post_init_hook(cr, e):
     # migration.migrate_tbKnowledgeTestResults()
     # migration.migrate_tbKnowledgeTests()
     # migration.migrate_tbMailTemplates()
-    # migration.migrate_tbStoreCategories()
+    migration.migrate_tbStoreCategories()
     # migration.migrate_tbStoreItemAnimators()
     # migration.migrate_tbStoreItemContentPackageMappings()
     # migration.migrate_tbStoreItemContentPackages()
@@ -758,30 +758,28 @@ class Migration:
         dct_tbstorecategories = {}
         table_name = f"{self.db_name}.dbo.tbStoreCategories"
         lst_tbl_tbstorecategories = self.dct_tbl.get(table_name)
+        model_name = "product.category"
 
         for i, tbstorecategories in enumerate(lst_tbl_tbstorecategories):
-            pos_id = f"{i}/{len(lst_tbl_tbstorecategories)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
-            # TODO update variable name from database table
-            # name = tbstorecategories.Name
-            name = ""
+            pos_id = f"{i}/{len(lst_tbl_tbstorecategories)}"
+
+            # TODO AffiliateLinks
+            obj_id_i = tbstorecategories.CategoryID
+            name = tbstorecategories.CategoryNameFR
 
             value = {
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_product_category_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstorecategories
-            dct_tbstorecategories[tbstorecategories.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstorecategories[obj_id_i] = obj_product_category_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstorecategories.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstorecategories = dct_tbstorecategories
@@ -1428,17 +1426,20 @@ class Migration:
         dct_tbusers = {}
         table_name = f"{self.db_name}.dbo.tbUsers"
         lst_tbl_tbusers = self.dct_tbl.get(table_name)
+        mailing_list_id = env.ref("mass_mailing.mailing_list_data")
+        model_name = "res.partner"
 
         for i, tbusers in enumerate(lst_tbl_tbusers):
-            pos_id = f"{i}/{len(lst_tbl_tbusers)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
+
+            pos_id = f"{i}/{len(lst_tbl_tbusers)}"
 
             # Ignore user
             if tbusers.UserID == 1231:
                 continue
 
+            obj_id_i = tbusers.UserID
             name = tbusers.FullName
             email = tbusers.Email.lower().strip()
             user_name = tbusers.UserName.lower().strip()
@@ -1530,11 +1531,11 @@ class Migration:
             if tbusers.WorkPhone and tbusers.WorkPhone.strip():
                 value["mobile"] = tbusers.WorkPhone.strip()
 
-            obj_partner_id = env["res.partner"].create(value)
-            dct_tbusers[tbusers.UserID] = obj_partner_id
+            obj_partner_id = env[model_name].create(value)
+            dct_tbusers[obj_id_i] = obj_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' '{email}' id {tbusers.UserID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' '{email}' id {obj_id_i}"
             )
 
             # Add to mailing list
@@ -1597,7 +1598,7 @@ class Migration:
             #     }
             #     env["mail.message"].create(comment_value)
 
-            if tbusers.UserID == DEFAULT_SELL_USER_ID:
+            if obj_id_i == DEFAULT_SELL_USER_ID:
                 value = {
                     "name": obj_partner_id.name,
                     "active": True,
@@ -1617,6 +1618,6 @@ class Migration:
                     .create(value)
                 )
 
-                self.dct_res_user_id[tbusers.UserID] = obj_user
+                self.dct_res_user_id[obj_id_i] = obj_user
 
         self.dct_tbusers = dct_tbusers
