@@ -19,6 +19,7 @@ FILE_PATH = f"{BACKUP_PATH}/document/doc"
 DEBUG_LIMIT = False
 LIMIT = 20
 GENERIC_EMAIL = f"%s_membre@exemple.ca"
+DEFAULT_SELL_USER_ID = 2 # or 8
 
 try:
     import pymssql
@@ -35,9 +36,62 @@ if not HOST or not USER or not PASSWD or not DB_NAME:
 
 
 def post_init_hook(cr, e):
-    with api.Environment.manage():
-        env = api.Environment(cr, SUPERUSER_ID, {})
-        _logger.info("Start migration")
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    _logger.info("Start migration")
+    migration = Migration(cr)
+
+    # General configuration
+    migration.setup_configuration()
+
+    # Migration method for each table
+    migration.migrate_tbUsers()
+
+    # migration.migrate_tbAnimators()
+    # migration.migrate_tbContents()
+    # migration.migrate_tbCouponAllowedItems()
+    # migration.migrate_tbCoupons()
+    # migration.migrate_tbExpenseCategories()
+    # migration.migrate_tbGalleryItems()
+    # migration.migrate_tbKnowledgeAnswerChoices()
+    # migration.migrate_tbKnowledgeAnswerResults()
+    # migration.migrate_tbKnowledgeQuestions()
+    # migration.migrate_tbKnowledgeTestResults()
+    # migration.migrate_tbKnowledgeTests()
+    # migration.migrate_tbMailTemplates()
+    # migration.migrate_tbStoreCategories()
+    # migration.migrate_tbStoreItemAnimators()
+    # migration.migrate_tbStoreItemContentPackageMappings()
+    # migration.migrate_tbStoreItemContentPackages()
+    # migration.migrate_tbStoreItemContents()
+    # migration.migrate_tbStoreItemContentTypes()
+    # migration.migrate_tbStoreItemPictures()
+    # migration.migrate_tbStoreItems()
+    # migration.migrate_tbStoreItemTaxes()
+    # migration.migrate_tbStoreItemTrainingCourses()
+    # migration.migrate_tbStoreItemVariants()
+    # migration.migrate_tbStoreShoppingCartItemCoupons()
+    # migration.migrate_tbStoreShoppingCartItems()
+    # migration.migrate_tbStoreShoppingCartItemTaxes()
+    # migration.migrate_tbStoreShoppingCarts()
+    # migration.migrate_tbTrainingCourses()
+
+    # Show information about computing migration.
+    if migration.lst_generic_email:
+        print("Got generic mail :")
+        for mail in migration.lst_generic_email:
+            print(f"\t{mail}")
+
+    # Print warning
+    if migration.lst_warning:
+        print("Got warning :")
+        for warn in migration.lst_warning:
+            print(f"\t{warn}")
+
+    # Print error
+    if migration.lst_error:
+        print("Got error :")
+        for err in migration.lst_error:
+            print(f"\t{err}")
 
 
 class Struct(object):
@@ -88,6 +142,7 @@ class Migration:
         self.dct_tbtrainingcourses = {}
         self.dct_tbusers = {}
         # Model into cache
+        self.dct_res_user_id = {}
         self.dct_partner_id = {}
         # Database information
         assert pymssql
@@ -170,7 +225,10 @@ class Migration:
             cur.execute(str_query)
             tpl_result = cur.fetchall()
             lst_column_name = [a[0] for a in tpl_result]
-            str_query = f"""SELECT * FROM {table_name};"""
+            if table == "tbStoreShoppingCarts":
+                str_query = f"""SELECT * FROM {table_name} WHERE IsCompleted = 1 or ProviderStatusText = 'completed';"""
+            else:
+                str_query = f"""SELECT * FROM {table_name};"""
             cur.nextset()
             cur.execute(str_query)
             tpl_result = cur.fetchall()
@@ -183,27 +241,25 @@ class Migration:
                     dct_value[lst_column_name[i]] = result
                 lst_column.append(Struct(**dct_value))
 
-            return dct_tbl
+        return dct_tbl
 
     def setup_configuration(self, dry_run=False):
         _logger.info("Setup configuration")
 
-        with api.Environment.manage():
-
-            env = api.Environment(self.cr, SUPERUSER_ID, {})
-            # General configuration
-            values = {
-                # 'use_quotation_validity_days': True,
-                # 'quotation_validity_days': 30,
-                # 'portal_confirmation_sign': True,
-                # 'portal_invoice_confirmation_sign': True,
-                # 'group_sale_delivery_address': True,
-                # 'group_sale_order_template': True,
-                # 'default_sale_order_template_id': True,
-            }
-            if not dry_run:
-                event_config = env["res.config.settings"].sudo().create(values)
-                event_config.execute()
+        env = api.Environment(self.cr, SUPERUSER_ID, {})
+        # General configuration
+        values = {
+            # 'use_quotation_validity_days': True,
+            # 'quotation_validity_days': 30,
+            # 'portal_confirmation_sign': True,
+            # 'portal_invoice_confirmation_sign': True,
+            # 'group_sale_delivery_address': True,
+            # 'group_sale_order_template': True,
+            # 'default_sale_order_template_id': True,
+        }
+        if not dry_run:
+            event_config = env["res.config.settings"].sudo().create(values)
+            event_config.execute()
 
     def migrate_tbAnimators(self):
         """
@@ -236,12 +292,12 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbanimators
-            dct_tbanimators[lst_tbl_tbanimators.ID] = obj_res_partner_id
+            # TODO Update ID from tbanimators
+            dct_tbanimators[tbanimators.ID] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbanimators.ID}"
+                f" '{name}' id {tbanimators.ID}"
             )
 
         self.dct_tbanimators = dct_tbanimators
@@ -277,12 +333,12 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbcontents
-            dct_tbcontents[lst_tbl_tbcontents.ID] = obj_res_partner_id
+            # TODO Update ID from tbcontents
+            dct_tbcontents[tbcontents.ID] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbcontents.ID}"
+                f" '{name}' id {tbcontents.ID}"
             )
 
         self.dct_tbcontents = dct_tbcontents
@@ -318,14 +374,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbcouponalloweditems
+            # TODO Update ID from tbcouponalloweditems
             dct_tbcouponalloweditems[
-                lst_tbl_tbcouponalloweditems.ID
+                tbcouponalloweditems.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbcouponalloweditems.ID}"
+                f" '{name}' id {tbcouponalloweditems.ID}"
             )
 
         self.dct_tbcouponalloweditems = dct_tbcouponalloweditems
@@ -361,12 +417,12 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbcoupons
-            dct_tbcoupons[lst_tbl_tbcoupons.ID] = obj_res_partner_id
+            # TODO Update ID from tbcoupons
+            dct_tbcoupons[tbcoupons.ID] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbcoupons.ID}"
+                f" '{name}' id {tbcoupons.ID}"
             )
 
         self.dct_tbcoupons = dct_tbcoupons
@@ -402,14 +458,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbexpensecategories
+            # TODO Update ID from tbexpensecategories
             dct_tbexpensecategories[
-                lst_tbl_tbexpensecategories.ID
+                tbexpensecategories.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbexpensecategories.ID}"
+                f" '{name}' id {tbexpensecategories.ID}"
             )
 
         self.dct_tbexpensecategories = dct_tbexpensecategories
@@ -445,12 +501,12 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbgalleryitems
-            dct_tbgalleryitems[lst_tbl_tbgalleryitems.ID] = obj_res_partner_id
+            # TODO Update ID from tbgalleryitems
+            dct_tbgalleryitems[tbgalleryitems.ID] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbgalleryitems.ID}"
+                f" '{name}' id {tbgalleryitems.ID}"
             )
 
         self.dct_tbgalleryitems = dct_tbgalleryitems
@@ -486,14 +542,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbknowledgeanswerchoices
+            # TODO Update ID from tbknowledgeanswerchoices
             dct_tbknowledgeanswerchoices[
-                lst_tbl_tbknowledgeanswerchoices.ID
+                tbknowledgeanswerchoices.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbknowledgeanswerchoices.ID}"
+                f" '{name}' id {tbknowledgeanswerchoices.ID}"
             )
 
         self.dct_tbknowledgeanswerchoices = dct_tbknowledgeanswerchoices
@@ -529,14 +585,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbknowledgeanswerresults
+            # TODO Update ID from tbknowledgeanswerresults
             dct_tbknowledgeanswerresults[
-                lst_tbl_tbknowledgeanswerresults.ID
+                tbknowledgeanswerresults.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbknowledgeanswerresults.ID}"
+                f" '{name}' id {tbknowledgeanswerresults.ID}"
             )
 
         self.dct_tbknowledgeanswerresults = dct_tbknowledgeanswerresults
@@ -572,14 +628,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbknowledgequestions
+            # TODO Update ID from tbknowledgequestions
             dct_tbknowledgequestions[
-                lst_tbl_tbknowledgequestions.ID
+                tbknowledgequestions.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbknowledgequestions.ID}"
+                f" '{name}' id {tbknowledgequestions.ID}"
             )
 
         self.dct_tbknowledgequestions = dct_tbknowledgequestions
@@ -615,14 +671,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbknowledgetestresults
+            # TODO Update ID from tbknowledgetestresults
             dct_tbknowledgetestresults[
-                lst_tbl_tbknowledgetestresults.ID
+                tbknowledgetestresults.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbknowledgetestresults.ID}"
+                f" '{name}' id {tbknowledgetestresults.ID}"
             )
 
         self.dct_tbknowledgetestresults = dct_tbknowledgetestresults
@@ -658,14 +714,12 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbknowledgetests
-            dct_tbknowledgetests[
-                lst_tbl_tbknowledgetests.ID
-            ] = obj_res_partner_id
+            # TODO Update ID from tbknowledgetests
+            dct_tbknowledgetests[tbknowledgetests.ID] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbknowledgetests.ID}"
+                f" '{name}' id {tbknowledgetests.ID}"
             )
 
         self.dct_tbknowledgetests = dct_tbknowledgetests
@@ -701,14 +755,12 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbmailtemplates
-            dct_tbmailtemplates[
-                lst_tbl_tbmailtemplates.ID
-            ] = obj_res_partner_id
+            # TODO Update ID from tbmailtemplates
+            dct_tbmailtemplates[tbmailtemplates.ID] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbmailtemplates.ID}"
+                f" '{name}' id {tbmailtemplates.ID}"
             )
 
         self.dct_tbmailtemplates = dct_tbmailtemplates
@@ -744,14 +796,12 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstorecategories
-            dct_tbstorecategories[
-                lst_tbl_tbstorecategories.ID
-            ] = obj_res_partner_id
+            # TODO Update ID from tbstorecategories
+            dct_tbstorecategories[tbstorecategories.ID] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstorecategories.ID}"
+                f" '{name}' id {tbstorecategories.ID}"
             )
 
         self.dct_tbstorecategories = dct_tbstorecategories
@@ -787,14 +837,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreitemanimators
+            # TODO Update ID from tbstoreitemanimators
             dct_tbstoreitemanimators[
-                lst_tbl_tbstoreitemanimators.ID
+                tbstoreitemanimators.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreitemanimators.ID}"
+                f" '{name}' id {tbstoreitemanimators.ID}"
             )
 
         self.dct_tbstoreitemanimators = dct_tbstoreitemanimators
@@ -834,14 +884,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreitemcontentpackagemappings
+            # TODO Update ID from tbstoreitemcontentpackagemappings
             dct_tbstoreitemcontentpackagemappings[
-                lst_tbl_tbstoreitemcontentpackagemappings.ID
+                tbstoreitemcontentpackagemappings.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreitemcontentpackagemappings.ID}"
+                f" '{name}' id {tbstoreitemcontentpackagemappings.ID}"
             )
 
         self.dct_tbstoreitemcontentpackagemappings = (
@@ -879,14 +929,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreitemcontentpackages
+            # TODO Update ID from tbstoreitemcontentpackages
             dct_tbstoreitemcontentpackages[
-                lst_tbl_tbstoreitemcontentpackages.ID
+                tbstoreitemcontentpackages.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreitemcontentpackages.ID}"
+                f" '{name}' id {tbstoreitemcontentpackages.ID}"
             )
 
         self.dct_tbstoreitemcontentpackages = dct_tbstoreitemcontentpackages
@@ -922,14 +972,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreitemcontents
+            # TODO Update ID from tbstoreitemcontents
             dct_tbstoreitemcontents[
-                lst_tbl_tbstoreitemcontents.ID
+                tbstoreitemcontents.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreitemcontents.ID}"
+                f" '{name}' id {tbstoreitemcontents.ID}"
             )
 
         self.dct_tbstoreitemcontents = dct_tbstoreitemcontents
@@ -965,14 +1015,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreitemcontenttypes
+            # TODO Update ID from tbstoreitemcontenttypes
             dct_tbstoreitemcontenttypes[
-                lst_tbl_tbstoreitemcontenttypes.ID
+                tbstoreitemcontenttypes.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreitemcontenttypes.ID}"
+                f" '{name}' id {tbstoreitemcontenttypes.ID}"
             )
 
         self.dct_tbstoreitemcontenttypes = dct_tbstoreitemcontenttypes
@@ -1008,14 +1058,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreitempictures
+            # TODO Update ID from tbstoreitempictures
             dct_tbstoreitempictures[
-                lst_tbl_tbstoreitempictures.ID
+                tbstoreitempictures.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreitempictures.ID}"
+                f" '{name}' id {tbstoreitempictures.ID}"
             )
 
         self.dct_tbstoreitempictures = dct_tbstoreitempictures
@@ -1051,12 +1101,12 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreitems
-            dct_tbstoreitems[lst_tbl_tbstoreitems.ID] = obj_res_partner_id
+            # TODO Update ID from tbstoreitems
+            dct_tbstoreitems[tbstoreitems.ID] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreitems.ID}"
+                f" '{name}' id {tbstoreitems.ID}"
             )
 
         self.dct_tbstoreitems = dct_tbstoreitems
@@ -1092,14 +1142,12 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreitemtaxes
-            dct_tbstoreitemtaxes[
-                lst_tbl_tbstoreitemtaxes.ID
-            ] = obj_res_partner_id
+            # TODO Update ID from tbstoreitemtaxes
+            dct_tbstoreitemtaxes[tbstoreitemtaxes.ID] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreitemtaxes.ID}"
+                f" '{name}' id {tbstoreitemtaxes.ID}"
             )
 
         self.dct_tbstoreitemtaxes = dct_tbstoreitemtaxes
@@ -1135,14 +1183,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreitemtrainingcourses
+            # TODO Update ID from tbstoreitemtrainingcourses
             dct_tbstoreitemtrainingcourses[
-                lst_tbl_tbstoreitemtrainingcourses.ID
+                tbstoreitemtrainingcourses.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreitemtrainingcourses.ID}"
+                f" '{name}' id {tbstoreitemtrainingcourses.ID}"
             )
 
         self.dct_tbstoreitemtrainingcourses = dct_tbstoreitemtrainingcourses
@@ -1178,14 +1226,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreitemvariants
+            # TODO Update ID from tbstoreitemvariants
             dct_tbstoreitemvariants[
-                lst_tbl_tbstoreitemvariants.ID
+                tbstoreitemvariants.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreitemvariants.ID}"
+                f" '{name}' id {tbstoreitemvariants.ID}"
             )
 
         self.dct_tbstoreitemvariants = dct_tbstoreitemvariants
@@ -1223,14 +1271,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreshoppingcartitemcoupons
+            # TODO Update ID from tbstoreshoppingcartitemcoupons
             dct_tbstoreshoppingcartitemcoupons[
-                lst_tbl_tbstoreshoppingcartitemcoupons.ID
+                tbstoreshoppingcartitemcoupons.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreshoppingcartitemcoupons.ID}"
+                f" '{name}' id {tbstoreshoppingcartitemcoupons.ID}"
             )
 
         self.dct_tbstoreshoppingcartitemcoupons = (
@@ -1268,14 +1316,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreshoppingcartitems
+            # TODO Update ID from tbstoreshoppingcartitems
             dct_tbstoreshoppingcartitems[
-                lst_tbl_tbstoreshoppingcartitems.ID
+                tbstoreshoppingcartitems.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreshoppingcartitems.ID}"
+                f" '{name}' id {tbstoreshoppingcartitems.ID}"
             )
 
         self.dct_tbstoreshoppingcartitems = dct_tbstoreshoppingcartitems
@@ -1313,14 +1361,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreshoppingcartitemtaxes
+            # TODO Update ID from tbstoreshoppingcartitemtaxes
             dct_tbstoreshoppingcartitemtaxes[
-                lst_tbl_tbstoreshoppingcartitemtaxes.ID
+                tbstoreshoppingcartitemtaxes.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreshoppingcartitemtaxes.ID}"
+                f" '{name}' id {tbstoreshoppingcartitemtaxes.ID}"
             )
 
         self.dct_tbstoreshoppingcartitemtaxes = (
@@ -1358,14 +1406,14 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbstoreshoppingcarts
+            # TODO Update ID from tbstoreshoppingcarts
             dct_tbstoreshoppingcarts[
-                lst_tbl_tbstoreshoppingcarts.ID
+                tbstoreshoppingcarts.ID
             ] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbstoreshoppingcarts.ID}"
+                f" '{name}' id {tbstoreshoppingcarts.ID}"
             )
 
         self.dct_tbstoreshoppingcarts = dct_tbstoreshoppingcarts
@@ -1401,14 +1449,12 @@ class Migration:
             # TODO update model name
             obj_res_partner_id = env["res.partner"].create(value)
 
-            # TODO Update ID from lst_tbl_tbtrainingcourses
-            dct_tbtrainingcourses[
-                lst_tbl_tbtrainingcourses.ID
-            ] = obj_res_partner_id
+            # TODO Update ID from tbtrainingcourses
+            dct_tbtrainingcourses[tbtrainingcourses.ID] = obj_res_partner_id
             # TODO update res.partner to the good model, update
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbtrainingcourses.ID}"
+                f" '{name}' id {tbtrainingcourses.ID}"
             )
 
         self.dct_tbtrainingcourses = dct_tbtrainingcourses
@@ -1433,23 +1479,129 @@ class Migration:
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
-            # TODO update variable name from database table
-            # name = tbusers.Name
-            name = ""
+            # Ignore user
+            if tbusers.UserID == 1231:
+                continue
 
+            name = tbusers.FullName
+            email = tbusers.Email.lower().strip()
+            user_name = tbusers.UserName.lower().strip()
+
+            if email != user_name:
+                _logger.warning(
+                    f"User name '{user_name}' is different from email"
+                    f" '{email}'"
+                )
+            if not user_name:
+                _logger.error(f"Missing user name for membre {tbusers}")
+
+            # Country mapping
+            dct_country_mapping = {
+                1: 38,
+                3: 75,
+                11: 7,
+                23: 20,
+                32: 29,
+                45: 43,
+                111: 109,
+                135: 133,
+                179: 177,
+                189: 187,
+            }
+            dct_province_mapping = {
+                2: 534,
+                5: 536,
+                8: 541,
+                9: 543,
+                12: 538,
+                13: 545,
+                33: 28,
+                35: 42,
+                45: 34,
+                52: 47,
+                58: 53,
+                66: -1,  # Martinique is a country
+                69: 1675,
+                72: -1,  # Haute-Normandie merge to Normandie
+                76: 1677,  # Hauts-de-France
+                77: 1668,  # Lorraine merge to Grand Est
+                78: 1668,  # Alsace merge to Grand Est
+                80: 1679,
+                81: 1672,
+                82: 1019,
+                83: 1669,  # Merge to Nouvelle-Aquitaine
+                86: 1669,  # Merge to Nouvelle-Aquitaine
+                88: 1676,  # Occitanie
+                89: 1680,
+            }
+            # Fix country
+            country_id = dct_country_mapping[tbusers.CountryID]
+            state_id = dct_province_mapping[tbusers.ProvinceID]
+            if state_id == -1:
+                if tbusers.ProvinceID == 66:
+                    country_id = 149
+                    state_id = False
+                if tbusers.ProvinceID == 72:
+                    state_id = 1668
+
+            # TODO IsAnimator is internal member, else only portal member
+            # TODO support newsletter with ReceiveNewsletter
+            # TODO support DateOfBirth
+            # TODO support Gender
+            # TODO show lastUpdate migration note field LastUpdatedDate + CreatedDate
+            # Info ignore DisplayName, FirstName, Gender, ProperName, LastName, ProviderUserKey, UserId
+            # TODO Occupation if exist
             value = {
                 "name": name,
+                "email": email,
+                "state_id": state_id,
+                "country_id": country_id,
+                "tz": "America/Montreal",
+                "create_date": tbusers.CreatedDate,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            if tbusers.AddressLine1 and tbusers.AddressLine1.strip():
+                value["street"] = tbusers.AddressLine1.strip()
+            if tbusers.AddressLine2 and tbusers.AddressLine2.strip():
+                value["street2"] = tbusers.AddressLine2.strip()
+            if tbusers.PostalCode and tbusers.PostalCode.strip():
+                value["zip"] = tbusers.PostalCode.strip()
+            if tbusers.City and tbusers.City.strip():
+                value["city"] = tbusers.City.strip()
+            if tbusers.WebSite and tbusers.WebSite.strip():
+                value["website"] = tbusers.WebSite.strip()
+            if tbusers.HomePhone and tbusers.HomePhone.strip():
+                value["phone"] = tbusers.HomePhone.strip()
+            if tbusers.WorkPhone and tbusers.WorkPhone.strip():
+                value["mobile"] = tbusers.WorkPhone.strip()
 
-            # TODO Update ID from lst_tbl_tbusers
-            dct_tbusers[lst_tbl_tbusers.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            obj_partner_id = env["res.partner"].create(value)
+            dct_tbusers[tbusers.UserID] = obj_partner_id
             _logger.info(
                 f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {lst_tbl_tbusers.ID}"
+                f" '{name}' '{email}' id {tbusers.UserID}"
             )
+
+            if tbusers.UserID == DEFAULT_SELL_USER_ID:
+                value = {
+                    "name": obj_partner_id.name,
+                    "active": True,
+                    "login": email,
+                    "email": email,
+                    # "groups_id": groups_id,
+                    # "company_id": company_id.id,
+                    # "company_ids": [(4, company_id.id)],
+                    "partner_id": obj_partner_id.id,
+                }
+
+                obj_user = (
+                    env["res.users"]
+                    # .with_context(
+                    #     {"no_reset_password": no_reset_password}
+                    # )
+                    .create(value)
+                )
+
+                self.dct_res_user_id[tbusers.UserID] = obj_user
 
         self.dct_tbusers = dct_tbusers
