@@ -272,14 +272,15 @@ class Migration:
         dct_tbanimators = {}
         table_name = f"{self.db_name}.dbo.tbAnimators"
         lst_tbl_tbanimators = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbanimators in enumerate(lst_tbl_tbanimators):
-            pos_id = f"{i}/{len(lst_tbl_tbanimators)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbanimators)}"
             # TODO update variable name from database table
+            obj_id_i = tbanimators.ID
             # name = tbanimators.Name
             name = ""
 
@@ -287,15 +288,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbanimators
-            dct_tbanimators[tbanimators.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbanimators[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbanimators.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbanimators = dct_tbanimators
@@ -311,14 +309,15 @@ class Migration:
         dct_tbcontents = {}
         table_name = f"{self.db_name}.dbo.tbContents"
         lst_tbl_tbcontents = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbcontents in enumerate(lst_tbl_tbcontents):
-            pos_id = f"{i}/{len(lst_tbl_tbcontents)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbcontents)}"
             # TODO update variable name from database table
+            obj_id_i = tbcontents.ID
             # name = tbcontents.Name
             name = ""
 
@@ -326,15 +325,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbcontents
-            dct_tbcontents[tbcontents.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbcontents[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbcontents.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbcontents = dct_tbcontents
@@ -350,14 +346,15 @@ class Migration:
         dct_tbcouponalloweditems = {}
         table_name = f"{self.db_name}.dbo.tbCouponAllowedItems"
         lst_tbl_tbcouponalloweditems = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbcouponalloweditems in enumerate(lst_tbl_tbcouponalloweditems):
-            pos_id = f"{i}/{len(lst_tbl_tbcouponalloweditems)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbcouponalloweditems)}"
             # TODO update variable name from database table
+            obj_id_i = tbcouponalloweditems.ID
             # name = tbcouponalloweditems.Name
             name = ""
 
@@ -365,17 +362,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbcouponalloweditems
-            dct_tbcouponalloweditems[
-                tbcouponalloweditems.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbcouponalloweditems[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbcouponalloweditems.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbcouponalloweditems = dct_tbcouponalloweditems
@@ -391,14 +383,15 @@ class Migration:
         dct_tbcoupons = {}
         table_name = f"{self.db_name}.dbo.tbCoupons"
         lst_tbl_tbcoupons = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbcoupons in enumerate(lst_tbl_tbcoupons):
-            pos_id = f"{i}/{len(lst_tbl_tbcoupons)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbcoupons)}"
             # TODO update variable name from database table
+            obj_id_i = tbcoupons.ID
             # name = tbcoupons.Name
             name = ""
 
@@ -406,15 +399,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbcoupons
-            dct_tbcoupons[tbcoupons.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbcoupons[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbcoupons.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbcoupons = dct_tbcoupons
@@ -430,14 +420,15 @@ class Migration:
         dct_tbexpensecategories = {}
         table_name = f"{self.db_name}.dbo.tbExpenseCategories"
         lst_tbl_tbexpensecategories = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbexpensecategories in enumerate(lst_tbl_tbexpensecategories):
-            pos_id = f"{i}/{len(lst_tbl_tbexpensecategories)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbexpensecategories)}"
             # TODO update variable name from database table
+            obj_id_i = tbexpensecategories.ID
             # name = tbexpensecategories.Name
             name = ""
 
@@ -445,17 +436,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbexpensecategories
-            dct_tbexpensecategories[
-                tbexpensecategories.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbexpensecategories[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbexpensecategories.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbexpensecategories = dct_tbexpensecategories
@@ -471,14 +457,15 @@ class Migration:
         dct_tbgalleryitems = {}
         table_name = f"{self.db_name}.dbo.tbGalleryItems"
         lst_tbl_tbgalleryitems = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbgalleryitems in enumerate(lst_tbl_tbgalleryitems):
-            pos_id = f"{i}/{len(lst_tbl_tbgalleryitems)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbgalleryitems)}"
             # TODO update variable name from database table
+            obj_id_i = tbgalleryitems.ID
             # name = tbgalleryitems.Name
             name = ""
 
@@ -486,15 +473,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbgalleryitems
-            dct_tbgalleryitems[tbgalleryitems.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbgalleryitems[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbgalleryitems.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbgalleryitems = dct_tbgalleryitems
@@ -510,16 +494,17 @@ class Migration:
         dct_tbknowledgeanswerchoices = {}
         table_name = f"{self.db_name}.dbo.tbKnowledgeAnswerChoices"
         lst_tbl_tbknowledgeanswerchoices = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbknowledgeanswerchoices in enumerate(
             lst_tbl_tbknowledgeanswerchoices
         ):
-            pos_id = f"{i}/{len(lst_tbl_tbknowledgeanswerchoices)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbknowledgeanswerchoices)}"
             # TODO update variable name from database table
+            obj_id_i = tbknowledgeanswerchoices.ID
             # name = tbknowledgeanswerchoices.Name
             name = ""
 
@@ -527,17 +512,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbknowledgeanswerchoices
-            dct_tbknowledgeanswerchoices[
-                tbknowledgeanswerchoices.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbknowledgeanswerchoices[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbknowledgeanswerchoices.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbknowledgeanswerchoices = dct_tbknowledgeanswerchoices
@@ -553,16 +533,17 @@ class Migration:
         dct_tbknowledgeanswerresults = {}
         table_name = f"{self.db_name}.dbo.tbKnowledgeAnswerResults"
         lst_tbl_tbknowledgeanswerresults = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbknowledgeanswerresults in enumerate(
             lst_tbl_tbknowledgeanswerresults
         ):
-            pos_id = f"{i}/{len(lst_tbl_tbknowledgeanswerresults)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbknowledgeanswerresults)}"
             # TODO update variable name from database table
+            obj_id_i = tbknowledgeanswerresults.ID
             # name = tbknowledgeanswerresults.Name
             name = ""
 
@@ -570,17 +551,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbknowledgeanswerresults
-            dct_tbknowledgeanswerresults[
-                tbknowledgeanswerresults.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbknowledgeanswerresults[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbknowledgeanswerresults.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbknowledgeanswerresults = dct_tbknowledgeanswerresults
@@ -596,14 +572,15 @@ class Migration:
         dct_tbknowledgequestions = {}
         table_name = f"{self.db_name}.dbo.tbKnowledgeQuestions"
         lst_tbl_tbknowledgequestions = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbknowledgequestions in enumerate(lst_tbl_tbknowledgequestions):
-            pos_id = f"{i}/{len(lst_tbl_tbknowledgequestions)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbknowledgequestions)}"
             # TODO update variable name from database table
+            obj_id_i = tbknowledgequestions.ID
             # name = tbknowledgequestions.Name
             name = ""
 
@@ -611,17 +588,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbknowledgequestions
-            dct_tbknowledgequestions[
-                tbknowledgequestions.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbknowledgequestions[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbknowledgequestions.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbknowledgequestions = dct_tbknowledgequestions
@@ -637,16 +609,17 @@ class Migration:
         dct_tbknowledgetestresults = {}
         table_name = f"{self.db_name}.dbo.tbKnowledgeTestResults"
         lst_tbl_tbknowledgetestresults = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbknowledgetestresults in enumerate(
             lst_tbl_tbknowledgetestresults
         ):
-            pos_id = f"{i}/{len(lst_tbl_tbknowledgetestresults)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbknowledgetestresults)}"
             # TODO update variable name from database table
+            obj_id_i = tbknowledgetestresults.ID
             # name = tbknowledgetestresults.Name
             name = ""
 
@@ -654,17 +627,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbknowledgetestresults
-            dct_tbknowledgetestresults[
-                tbknowledgetestresults.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbknowledgetestresults[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbknowledgetestresults.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbknowledgetestresults = dct_tbknowledgetestresults
@@ -680,14 +648,15 @@ class Migration:
         dct_tbknowledgetests = {}
         table_name = f"{self.db_name}.dbo.tbKnowledgeTests"
         lst_tbl_tbknowledgetests = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbknowledgetests in enumerate(lst_tbl_tbknowledgetests):
-            pos_id = f"{i}/{len(lst_tbl_tbknowledgetests)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbknowledgetests)}"
             # TODO update variable name from database table
+            obj_id_i = tbknowledgetests.ID
             # name = tbknowledgetests.Name
             name = ""
 
@@ -695,15 +664,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbknowledgetests
-            dct_tbknowledgetests[tbknowledgetests.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbknowledgetests[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbknowledgetests.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbknowledgetests = dct_tbknowledgetests
@@ -719,14 +685,15 @@ class Migration:
         dct_tbmailtemplates = {}
         table_name = f"{self.db_name}.dbo.tbMailTemplates"
         lst_tbl_tbmailtemplates = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbmailtemplates in enumerate(lst_tbl_tbmailtemplates):
-            pos_id = f"{i}/{len(lst_tbl_tbmailtemplates)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbmailtemplates)}"
             # TODO update variable name from database table
+            obj_id_i = tbmailtemplates.ID
             # name = tbmailtemplates.Name
             name = ""
 
@@ -734,15 +701,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbmailtemplates
-            dct_tbmailtemplates[tbmailtemplates.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbmailtemplates[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbmailtemplates.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbmailtemplates = dct_tbmailtemplates
@@ -795,14 +759,15 @@ class Migration:
         dct_tbstoreitemanimators = {}
         table_name = f"{self.db_name}.dbo.tbStoreItemAnimators"
         lst_tbl_tbstoreitemanimators = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreitemanimators in enumerate(lst_tbl_tbstoreitemanimators):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemanimators)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitemanimators)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreitemanimators.ID
             # name = tbstoreitemanimators.Name
             name = ""
 
@@ -810,17 +775,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreitemanimators
-            dct_tbstoreitemanimators[
-                tbstoreitemanimators.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreitemanimators[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreitemanimators.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreitemanimators = dct_tbstoreitemanimators
@@ -838,16 +798,17 @@ class Migration:
         lst_tbl_tbstoreitemcontentpackagemappings = self.dct_tbl.get(
             table_name
         )
+        model_name = "res.partner"
 
         for i, tbstoreitemcontentpackagemappings in enumerate(
             lst_tbl_tbstoreitemcontentpackagemappings
         ):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontentpackagemappings)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontentpackagemappings)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreitemcontentpackagemappings.ID
             # name = tbstoreitemcontentpackagemappings.Name
             name = ""
 
@@ -855,17 +816,14 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreitemcontentpackagemappings
             dct_tbstoreitemcontentpackagemappings[
-                tbstoreitemcontentpackagemappings.ID
+                obj_id_i
             ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreitemcontentpackagemappings.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreitemcontentpackagemappings = (
@@ -883,16 +841,17 @@ class Migration:
         dct_tbstoreitemcontentpackages = {}
         table_name = f"{self.db_name}.dbo.tbStoreItemContentPackages"
         lst_tbl_tbstoreitemcontentpackages = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreitemcontentpackages in enumerate(
             lst_tbl_tbstoreitemcontentpackages
         ):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontentpackages)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontentpackages)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreitemcontentpackages.ID
             # name = tbstoreitemcontentpackages.Name
             name = ""
 
@@ -900,17 +859,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreitemcontentpackages
-            dct_tbstoreitemcontentpackages[
-                tbstoreitemcontentpackages.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreitemcontentpackages[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreitemcontentpackages.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreitemcontentpackages = dct_tbstoreitemcontentpackages
@@ -926,14 +880,15 @@ class Migration:
         dct_tbstoreitemcontents = {}
         table_name = f"{self.db_name}.dbo.tbStoreItemContents"
         lst_tbl_tbstoreitemcontents = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreitemcontents in enumerate(lst_tbl_tbstoreitemcontents):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontents)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontents)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreitemcontents.ID
             # name = tbstoreitemcontents.Name
             name = ""
 
@@ -941,17 +896,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreitemcontents
-            dct_tbstoreitemcontents[
-                tbstoreitemcontents.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreitemcontents[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreitemcontents.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreitemcontents = dct_tbstoreitemcontents
@@ -967,16 +917,17 @@ class Migration:
         dct_tbstoreitemcontenttypes = {}
         table_name = f"{self.db_name}.dbo.tbStoreItemContentTypes"
         lst_tbl_tbstoreitemcontenttypes = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreitemcontenttypes in enumerate(
             lst_tbl_tbstoreitemcontenttypes
         ):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontenttypes)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontenttypes)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreitemcontenttypes.ID
             # name = tbstoreitemcontenttypes.Name
             name = ""
 
@@ -984,17 +935,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreitemcontenttypes
-            dct_tbstoreitemcontenttypes[
-                tbstoreitemcontenttypes.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreitemcontenttypes[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreitemcontenttypes.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreitemcontenttypes = dct_tbstoreitemcontenttypes
@@ -1010,14 +956,15 @@ class Migration:
         dct_tbstoreitempictures = {}
         table_name = f"{self.db_name}.dbo.tbStoreItemPictures"
         lst_tbl_tbstoreitempictures = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreitempictures in enumerate(lst_tbl_tbstoreitempictures):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitempictures)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitempictures)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreitempictures.ID
             # name = tbstoreitempictures.Name
             name = ""
 
@@ -1025,17 +972,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreitempictures
-            dct_tbstoreitempictures[
-                tbstoreitempictures.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreitempictures[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreitempictures.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreitempictures = dct_tbstoreitempictures
@@ -1051,14 +993,15 @@ class Migration:
         dct_tbstoreitems = {}
         table_name = f"{self.db_name}.dbo.tbStoreItems"
         lst_tbl_tbstoreitems = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreitems in enumerate(lst_tbl_tbstoreitems):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitems)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitems)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreitems.ID
             # name = tbstoreitems.Name
             name = ""
 
@@ -1066,15 +1009,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreitems
-            dct_tbstoreitems[tbstoreitems.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreitems[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreitems.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreitems = dct_tbstoreitems
@@ -1090,14 +1030,15 @@ class Migration:
         dct_tbstoreitemtaxes = {}
         table_name = f"{self.db_name}.dbo.tbStoreItemTaxes"
         lst_tbl_tbstoreitemtaxes = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreitemtaxes in enumerate(lst_tbl_tbstoreitemtaxes):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemtaxes)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitemtaxes)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreitemtaxes.ID
             # name = tbstoreitemtaxes.Name
             name = ""
 
@@ -1105,15 +1046,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreitemtaxes
-            dct_tbstoreitemtaxes[tbstoreitemtaxes.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreitemtaxes[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreitemtaxes.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreitemtaxes = dct_tbstoreitemtaxes
@@ -1129,16 +1067,17 @@ class Migration:
         dct_tbstoreitemtrainingcourses = {}
         table_name = f"{self.db_name}.dbo.tbStoreItemTrainingCourses"
         lst_tbl_tbstoreitemtrainingcourses = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreitemtrainingcourses in enumerate(
             lst_tbl_tbstoreitemtrainingcourses
         ):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemtrainingcourses)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitemtrainingcourses)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreitemtrainingcourses.ID
             # name = tbstoreitemtrainingcourses.Name
             name = ""
 
@@ -1146,17 +1085,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreitemtrainingcourses
-            dct_tbstoreitemtrainingcourses[
-                tbstoreitemtrainingcourses.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreitemtrainingcourses[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreitemtrainingcourses.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreitemtrainingcourses = dct_tbstoreitemtrainingcourses
@@ -1172,14 +1106,15 @@ class Migration:
         dct_tbstoreitemvariants = {}
         table_name = f"{self.db_name}.dbo.tbStoreItemVariants"
         lst_tbl_tbstoreitemvariants = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreitemvariants in enumerate(lst_tbl_tbstoreitemvariants):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemvariants)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitemvariants)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreitemvariants.ID
             # name = tbstoreitemvariants.Name
             name = ""
 
@@ -1187,17 +1122,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreitemvariants
-            dct_tbstoreitemvariants[
-                tbstoreitemvariants.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreitemvariants[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreitemvariants.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreitemvariants = dct_tbstoreitemvariants
@@ -1213,16 +1143,17 @@ class Migration:
         dct_tbstoreshoppingcartitemcoupons = {}
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItemCoupons"
         lst_tbl_tbstoreshoppingcartitemcoupons = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreshoppingcartitemcoupons in enumerate(
             lst_tbl_tbstoreshoppingcartitemcoupons
         ):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitemcoupons)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitemcoupons)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreshoppingcartitemcoupons.ID
             # name = tbstoreshoppingcartitemcoupons.Name
             name = ""
 
@@ -1230,17 +1161,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreshoppingcartitemcoupons
-            dct_tbstoreshoppingcartitemcoupons[
-                tbstoreshoppingcartitemcoupons.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreshoppingcartitemcoupons[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreshoppingcartitemcoupons.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreshoppingcartitemcoupons = (
@@ -1258,16 +1184,17 @@ class Migration:
         dct_tbstoreshoppingcartitems = {}
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItems"
         lst_tbl_tbstoreshoppingcartitems = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreshoppingcartitems in enumerate(
             lst_tbl_tbstoreshoppingcartitems
         ):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitems)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitems)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreshoppingcartitems.ID
             # name = tbstoreshoppingcartitems.Name
             name = ""
 
@@ -1275,17 +1202,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreshoppingcartitems
-            dct_tbstoreshoppingcartitems[
-                tbstoreshoppingcartitems.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreshoppingcartitems[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreshoppingcartitems.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreshoppingcartitems = dct_tbstoreshoppingcartitems
@@ -1301,16 +1223,17 @@ class Migration:
         dct_tbstoreshoppingcartitemtaxes = {}
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItemTaxes"
         lst_tbl_tbstoreshoppingcartitemtaxes = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreshoppingcartitemtaxes in enumerate(
             lst_tbl_tbstoreshoppingcartitemtaxes
         ):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitemtaxes)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitemtaxes)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreshoppingcartitemtaxes.ID
             # name = tbstoreshoppingcartitemtaxes.Name
             name = ""
 
@@ -1318,17 +1241,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreshoppingcartitemtaxes
-            dct_tbstoreshoppingcartitemtaxes[
-                tbstoreshoppingcartitemtaxes.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreshoppingcartitemtaxes[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreshoppingcartitemtaxes.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreshoppingcartitemtaxes = (
@@ -1346,14 +1264,15 @@ class Migration:
         dct_tbstoreshoppingcarts = {}
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCarts"
         lst_tbl_tbstoreshoppingcarts = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbstoreshoppingcarts in enumerate(lst_tbl_tbstoreshoppingcarts):
-            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcarts)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcarts)}"
             # TODO update variable name from database table
+            obj_id_i = tbstoreshoppingcarts.ID
             # name = tbstoreshoppingcarts.Name
             name = ""
 
@@ -1361,17 +1280,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbstoreshoppingcarts
-            dct_tbstoreshoppingcarts[
-                tbstoreshoppingcarts.ID
-            ] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbstoreshoppingcarts[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbstoreshoppingcarts.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbstoreshoppingcarts = dct_tbstoreshoppingcarts
@@ -1387,14 +1301,15 @@ class Migration:
         dct_tbtrainingcourses = {}
         table_name = f"{self.db_name}.dbo.tbTrainingCourses"
         lst_tbl_tbtrainingcourses = self.dct_tbl.get(table_name)
+        model_name = "res.partner"
 
         for i, tbtrainingcourses in enumerate(lst_tbl_tbtrainingcourses):
-            pos_id = f"{i}/{len(lst_tbl_tbtrainingcourses)}"
-
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
+            pos_id = f"{i}/{len(lst_tbl_tbtrainingcourses)}"
             # TODO update variable name from database table
+            obj_id_i = tbtrainingcourses.ID
             # name = tbtrainingcourses.Name
             name = ""
 
@@ -1402,15 +1317,12 @@ class Migration:
                 "name": name,
             }
 
-            # TODO update model name
-            obj_res_partner_id = env["res.partner"].create(value)
+            obj_res_partner_id = env[model_name].create(value)
 
-            # TODO Update ID from tbtrainingcourses
-            dct_tbtrainingcourses[tbtrainingcourses.ID] = obj_res_partner_id
-            # TODO update res.partner to the good model, update
+            dct_tbtrainingcourses[obj_id_i] = obj_res_partner_id
             _logger.info(
-                f"{pos_id} - res.partner - table {table_name} - ADDED"
-                f" '{name}' id {tbtrainingcourses.ID}"
+                f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                f" '{name}' id {obj_id_i}"
             )
 
         self.dct_tbtrainingcourses = dct_tbtrainingcourses
