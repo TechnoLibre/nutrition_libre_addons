@@ -21,6 +21,7 @@ DEBUG_OUTPUT = True
 DEBUG_LIMIT = False
 LIMIT = 20
 DEFAULT_SELL_USER_ID = 2  # or 8
+MIGRATE_INVOICE = False
 
 try:
     import pymssql
@@ -50,7 +51,6 @@ def post_init_hook(cr, e):
     # migration.migrate_tbAnimators()
     # migration.migrate_tbContents()
     # migration.migrate_tbCouponAllowedItems()
-    # migration.migrate_tbCoupons()
     # migration.migrate_tbExpenseCategories()
     # migration.migrate_tbGalleryItems()
     # migration.migrate_tbKnowledgeAnswerChoices()
@@ -95,18 +95,21 @@ def post_init_hook(cr, e):
     # migration.migrate_tbStoreShoppingCartItems()
     # migration.migrate_tbStoreShoppingCartItemTaxes()
     migration.migrate_tbStoreShoppingCarts()
+    migration.migrate_tbCoupons()
 
     # Print warning
     if migration.lst_warning:
         print("Got warning :")
-        lst_warning = set(migration.lst_warning)
+        lst_warning = list(set(migration.lst_warning))
+        lst_warning.sort()
         for warn in lst_warning:
             print(f"\t{warn}")
 
     # Print error
     if migration.lst_error:
         print("Got error :")
-        lst_error = set(migration.lst_error)
+        lst_error = list(set(migration.lst_error))
+        lst_error.sort()
         for err in lst_error:
             print(f"\t{err}")
 
@@ -132,6 +135,8 @@ def post_init_hook(cr, e):
         "event.registration",
         "account.move",
         "account.payment",
+        "loyalty.program",
+        "loyalty.reward",
     ]
     print(f"Migrate into {len(lst_model)} models.")
     for model in lst_model:
@@ -158,7 +163,7 @@ class Migration:
         self.dct_tbanimators = {}
         self.dct_tbcontents = {}
         self.dct_tbcouponalloweditems = {}
-        self.dct_tbcoupons = {}
+        self.dct_k_tbcoupons_v_loyalty_program = {}
         self.dct_tbexpensecategories = {}
         self.dct_tbgalleryitems = {}
         self.dct_k_tbknowledgeanswerresults_v_survey_question_answer = {}
@@ -190,7 +195,7 @@ class Migration:
         self.dct_k_survey_v_slide_survey_id = {}
         self.dct_event = {}
         self.dct_event_ticket = {}
-        self.dct_product_template = {}
+        self.dct_k_tbstoreitems_v_product_template = {}
         # Database information
         assert pymssql
         self.host = HOST
@@ -428,37 +433,81 @@ class Migration:
         """
         _logger.info("Migrate tbCoupons")
         env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbcoupons:
+        if self.dct_k_tbcoupons_v_loyalty_program:
             return
-        dct_tbcoupons = {}
         table_name = f"{self.db_name}.dbo.tbCoupons"
         lst_tbl_tbcoupons = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
+        lst_tbl_tbCouponAllowedItems = self.dct_tbl.get(
+            f"{self.db_name}.dbo.tbCouponAllowedItems"
+        )
+        model_name = "loyalty.program"
 
         for i, tbcoupons in enumerate(lst_tbl_tbcoupons):
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbcoupons)}"
-            # TODO update variable name from database table
-            obj_id_i = tbcoupons.ID
-            # name = tbcoupons.Name
-            name = ""
+            obj_id_i = tbcoupons.CouponID
+            name = tbcoupons.CouponCode
+
+            lst_associate_item = [
+                a
+                for a in lst_tbl_tbCouponAllowedItems
+                if a.CouponID == obj_id_i
+            ]
+
+            if not lst_associate_item:
+                continue
 
             value = {
                 "name": name,
+                "active": tbcoupons.IsActive,
             }
 
-            obj_res_partner_id = env[model_name].create(value)
+            obj_coupon_id = env[model_name].create(value)
 
-            dct_tbcoupons[obj_id_i] = obj_res_partner_id
+            self.dct_k_tbcoupons_v_loyalty_program[obj_id_i] = obj_coupon_id
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
                     f" '{name}' id {obj_id_i}"
                 )
 
-        self.dct_tbcoupons = dct_tbcoupons
+            value_reward = {
+                "active": tbcoupons.IsActive,
+                "discount": tbcoupons.CouponAmount * 100,
+                "program_id": obj_coupon_id.id,
+                "discount_mode": "percent"
+                if tbcoupons.IsPercent
+                else "per_order",
+            }
+            obj_coupon_reward_id = env["loyalty.reward"].create(value_reward)
+            lst_product = []
+            for associate_item in lst_associate_item:
+                product_id = self.dct_k_tbstoreitems_v_product_template.get(
+                    associate_item.StoreItemID
+                )
+                if product_id:
+                    lst_product.append(product_id.id)
+                else:
+                    msg = f"Missing product id {associate_item.StoreItemID}"
+                    _logger.warning(msg)
+                    self.lst_warning.append(msg)
+
+            if lst_associate_item and not lst_product:
+                msg = f"Coupon id {obj_id_i} has not product associate, it's empty."
+                _logger.warning(msg)
+                self.lst_warning.append(msg)
+
+            value_rule = {
+                "active": tbcoupons.IsActive,
+                "program_id": obj_coupon_id.id,
+                "product_ids": lst_product,
+            }
+            if tbcoupons.MinimumAmount:
+                value_rule["minimum_amount"] = tbcoupons.MinimumAmount
+            obj_coupon_rule_id = env["loyalty.rule"].create(value_rule)
+            # TODO tbStoreShoppingCartItemCoupons
 
     def migrate_tbExpenseCategories(self):
         """
@@ -1061,7 +1110,6 @@ class Migration:
         env = api.Environment(self.cr, SUPERUSER_ID, {})
         default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
         default_seller_id = self.dct_partner_id[DEFAULT_SELL_USER_ID]
-        dct_tbstoreitems = {}
         table_name = f"{self.db_name}.dbo.tbStoreItems"
         lst_tbl_tbstoreitems = self.dct_tbl.get(table_name)
         model_name = "event.event"
@@ -1126,7 +1174,9 @@ class Migration:
                 product_template_id = env["product.template"].create(
                     value_product
                 )
-                self.dct_product_template[obj_id_i] = product_template_id
+                self.dct_k_tbstoreitems_v_product_template[
+                    obj_id_i
+                ] = product_template_id
 
             if DEBUG_OUTPUT:
                 _logger.info(
@@ -1474,8 +1524,10 @@ class Migration:
                 )
             else:
                 for item in lst_items:
-                    product_shopping_id = self.dct_product_template.get(
-                        item.ItemID
+                    product_shopping_id = (
+                        self.dct_k_tbstoreitems_v_product_template.get(
+                            item.ItemID
+                        )
                     )
                     if not product_shopping_id:
                         event_shopping_id = self.dct_event.get(item.ItemID)
@@ -1521,87 +1573,90 @@ class Migration:
             # Create invoice
             # Validate sale order
             # sale_order_id.action_confirm()
-
-            # Create Invoice
-            invoice_vals = {
-                "move_type": "out_invoice",  # for customer invoice
-                "partner_id": sale_order_id.partner_id.id,
-                "journal_id": journal_sale_id.id,
-                "date": tbstoreshoppingcarts.DateCreated,
-                "invoice_date": tbstoreshoppingcarts.DateCreated,
-                "invoice_origin": sale_order_id.name,
-                "currency_id": env.company.currency_id.id,
-                "company_id": env.company.id,
-                "invoice_line_ids": [
-                    (
-                        0,
-                        0,
-                        {
-                            "product_id": line.product_id.id,
-                            "name": line.name,
-                            "quantity": line.product_uom_qty,
-                            "price_unit": line.price_unit,
-                            "account_id": env.ref(
-                                "l10n_ca.ca_en_chart_template_en"
-                            ).id,
-                            # "tax_ids": False,
-                        },
-                    )
-                    for line in sale_order_id.order_line
-                ],
-            }
-
-            invoice_id = env["account.move"].create(invoice_vals)
-            invoice_id.action_post()
-
-            # Validate Invoice (optional)
-            # sale_order_id.write({"invoice_ids": [(4, invoice_id.id)]})
-            if invoice_id.amount_total > 0:
-                vals = {
-                    "amount": invoice_id.amount_total,
-                    "date": tbstoreshoppingcarts.DateCreated,
-                    "partner_type": "customer",
+            if MIGRATE_INVOICE:
+                # Create Invoice
+                invoice_vals = {
+                    "move_type": "out_invoice",  # for customer invoice
                     "partner_id": sale_order_id.partner_id.id,
-                    "payment_type": "inbound",
-                    "payment_method_id": env.ref(
-                        "account.account_payment_method_manual_in"
-                    ).id,
-                    "journal_id": journal_id.id,
+                    "journal_id": journal_sale_id.id,
+                    "date": tbstoreshoppingcarts.DateCreated,
+                    "invoice_date": tbstoreshoppingcarts.DateCreated,
+                    "invoice_origin": sale_order_id.name,
                     "currency_id": env.company.currency_id.id,
                     "company_id": env.company.id,
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "product_id": line.product_id.id,
+                                "name": line.name,
+                                "quantity": line.product_uom_qty,
+                                "price_unit": line.price_unit,
+                                "account_id": env.ref(
+                                    "l10n_ca.ca_en_chart_template_en"
+                                ).id,
+                                # "tax_ids": False,
+                            },
+                        )
+                        for line in sale_order_id.order_line
+                    ],
                 }
-                payment_id = env["account.payment"].create(vals)
-                # invoice_id.write({"payment_id": payment_id.id})
-                payment_id.action_post()
-                payment_ml = payment_id.line_ids.filtered(
-                    lambda l: l.account_id == default_account_client_recv_id
-                )
-                res = invoice_id.with_context(
-                    move_id=invoice_id.id,
-                    line_id=payment_ml.id,
-                    paid_amount=invoice_id.amount_total,
-                ).js_assign_outstanding_line(payment_ml.id)
-                if not payment_ml.reconciled:
-                    _logger.warning(f"Facture non payé id %s" % invoice_id.id)
-                # partials = res.get("partials")
-                # if partials:
-                #     print(partials)
-                #     invoice_id.with_context(
-                #         paid_amount=invoice_id.amount_total
-                #     ).js_assign_outstanding_line(payment_ml.id)
-                # print(payment_ml.reconciled)
-                # print(invoice_id.amount_residual)
-                # print(invoice_id.payment_state)
-            # invoice_id.action_post()
-            # invoice_id.js_assign_outstanding_line(payment_id.id)
-            # invoice_id._post()
 
-            # Create invoice
-            # new_invoice = sale_order_id._create_invoices()
-            # Validate invoice
-            # new_invoice.action_post()
-            # new_invoice.invoice_origin = sale_order_id.name + ", 987 - " + self.name
-            # invoice = sale_order_id.invoice_ids
+                invoice_id = env["account.move"].create(invoice_vals)
+                invoice_id.action_post()
+
+                # Validate Invoice (optional)
+                # sale_order_id.write({"invoice_ids": [(4, invoice_id.id)]})
+                if invoice_id.amount_total > 0:
+                    vals = {
+                        "amount": invoice_id.amount_total,
+                        "date": tbstoreshoppingcarts.DateCreated,
+                        "partner_type": "customer",
+                        "partner_id": sale_order_id.partner_id.id,
+                        "payment_type": "inbound",
+                        "payment_method_id": env.ref(
+                            "account.account_payment_method_manual_in"
+                        ).id,
+                        "journal_id": journal_id.id,
+                        "currency_id": env.company.currency_id.id,
+                        "company_id": env.company.id,
+                    }
+                    payment_id = env["account.payment"].create(vals)
+                    # invoice_id.write({"payment_id": payment_id.id})
+                    payment_id.action_post()
+                    payment_ml = payment_id.line_ids.filtered(
+                        lambda l: l.account_id
+                        == default_account_client_recv_id
+                    )
+                    res = invoice_id.with_context(
+                        move_id=invoice_id.id,
+                        line_id=payment_ml.id,
+                        paid_amount=invoice_id.amount_total,
+                    ).js_assign_outstanding_line(payment_ml.id)
+                    if not payment_ml.reconciled:
+                        _logger.warning(
+                            f"Facture non payé id %s" % invoice_id.id
+                        )
+                    # partials = res.get("partials")
+                    # if partials:
+                    #     print(partials)
+                    #     invoice_id.with_context(
+                    #         paid_amount=invoice_id.amount_total
+                    #     ).js_assign_outstanding_line(payment_ml.id)
+                    # print(payment_ml.reconciled)
+                    # print(invoice_id.amount_residual)
+                    # print(invoice_id.payment_state)
+                # invoice_id.action_post()
+                # invoice_id.js_assign_outstanding_line(payment_id.id)
+                # invoice_id._post()
+
+                # Create invoice
+                # new_invoice = sale_order_id._create_invoices()
+                # Validate invoice
+                # new_invoice.action_post()
+                # new_invoice.invoice_origin = sale_order_id.name + ", 987 - " + self.name
+                # invoice = sale_order_id.invoice_ids
 
             name = ""
             if DEBUG_OUTPUT:
