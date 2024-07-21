@@ -20,7 +20,6 @@ FILE_PATH = f"{BACKUP_PATH}/document/doc"
 DEBUG_OUTPUT = True
 DEBUG_LIMIT = False
 LIMIT = 20
-GENERIC_EMAIL = f"%s_membre@exemple.ca"
 DEFAULT_SELL_USER_ID = 2  # or 8
 
 try:
@@ -65,7 +64,7 @@ def post_init_hook(cr, e):
     for (
         obj_id_i,
         obj_slide_channel_id,
-    ) in migration.dct_tbtrainingcourses.items():
+    ) in migration.dct_k_tbtrainingcourses_v_slide_channel.items():
         (
             obj_survey_id,
             first_knowledge_test_id,
@@ -75,12 +74,10 @@ def post_init_hook(cr, e):
         )
         if obj_survey_id is False or first_knowledge_test_id is False:
             continue
-        object_slide_id = (
-            migration.continue_migrate_tbTrainingCourses_slide_slide(
-                first_knowledge_test_id,
-                obj_slide_channel_id,
-                obj_survey_id,
-            )
+        migration.continue_migrate_tbTrainingCourses_slide_slide(
+            first_knowledge_test_id,
+            obj_slide_channel_id,
+            obj_survey_id,
         )
 
     migration.continue_migrate_tbTrainingCourses_knownledge_answer()
@@ -99,26 +96,21 @@ def post_init_hook(cr, e):
     # migration.migrate_tbStoreShoppingCartItemTaxes()
     # migration.migrate_tbStoreShoppingCarts()
 
-    # Show information about computing migration.
-    if migration.lst_generic_email:
-        print("Got generic mail :")
-        for mail in migration.lst_generic_email:
-            print(f"\t{mail}")
-
     # Print warning
     if migration.lst_warning:
         print("Got warning :")
-        for warn in migration.lst_warning:
+        lst_warning = set(migration.lst_warning)
+        for warn in lst_warning:
             print(f"\t{warn}")
 
     # Print error
     if migration.lst_error:
         print("Got error :")
-        for err in migration.lst_error:
+        lst_error = set(migration.lst_error)
+        for err in lst_error:
             print(f"\t{err}")
 
     # Print summary
-    env = api.Environment(cr, SUPERUSER_ID, {})
     lst_model = [
         "res.partner",
         "res.users",
@@ -143,7 +135,7 @@ def post_init_hook(cr, e):
     ]
     print(f"Migrate into {len(lst_model)} models.")
     for model in lst_model:
-        print(f"{model} count {len(env[model].search([]))}")
+        print(f"{len(env[model].search([]))} {model}")
 
 
 class Struct(object):
@@ -155,7 +147,6 @@ class Migration:
     def __init__(self, cr):
         # Generic variable
         self.cr = cr
-        self.lst_generic_email = []
         self.lst_used_email = []
         self.lst_error = []
         self.lst_warning = []
@@ -175,7 +166,7 @@ class Migration:
         self.dct_tbknowledgetestresults = {}
         self.dct_tbknowledgetests = {}
         self.dct_tbmailtemplates = {}
-        self.dct_tbstorecategories = {}
+        self.dct_k_tbstorecategories_v_product_category = {}
         self.dct_tbstoreitemanimators = {}
         self.dct_tbstoreitemcontentpackagemappings = {}
         self.dct_tbstoreitemcontentpackages = {}
@@ -190,13 +181,13 @@ class Migration:
         self.dct_tbstoreshoppingcartitems = {}
         self.dct_tbstoreshoppingcartitemtaxes = {}
         self.dct_tbstoreshoppingcarts = {}
-        self.dct_tbtrainingcourses = {}
+        self.dct_k_tbtrainingcourses_v_slide_channel = {}
         self.dct_tbusers = {}
         # Model into cache
         self.dct_res_user_id = {}
         self.dct_partner_id = {}
         self.dct_k_knowledgetest_v_survey_id = {}
-        self.dct_slide_survey_id = {}
+        self.dct_k_survey_v_slide_survey_id = {}
         # Database information
         assert pymssql
         self.host = HOST
@@ -786,9 +777,8 @@ class Migration:
         """
         _logger.info("Migrate tbStoreCategories")
         env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstorecategories:
+        if self.dct_k_tbstorecategories_v_product_category:
             return
-        dct_tbstorecategories = {}
         table_name = f"{self.db_name}.dbo.tbStoreCategories"
         lst_tbl_tbstorecategories = self.dct_tbl.get(table_name)
         model_name = "product.category"
@@ -809,14 +799,14 @@ class Migration:
 
             obj_product_category_id = env[model_name].create(value)
 
-            dct_tbstorecategories[obj_id_i] = obj_product_category_id
+            self.dct_k_tbstorecategories_v_product_category[
+                obj_id_i
+            ] = obj_product_category_id
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
                     f" '{name}' id {obj_id_i}"
                 )
-
-        self.dct_tbstorecategories = dct_tbstorecategories
 
     def migrate_tbStoreItemAnimators(self):
         """
@@ -1379,9 +1369,8 @@ class Migration:
         """
         _logger.info("Migrate tbTrainingCourses")
         env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbtrainingcourses:
+        if self.dct_k_tbtrainingcourses_v_slide_channel:
             return
-        dct_tbtrainingcourses = {}
         table_name = f"{self.db_name}.dbo.tbTrainingCourses"
         lst_tbl_tbtrainingcourses = self.dct_tbl.get(table_name)
         model_name = "slide.channel"
@@ -1419,13 +1408,14 @@ class Migration:
 
             obj_slide_channel_id = env[model_name].create(value)
 
-            dct_tbtrainingcourses[obj_id_i] = obj_slide_channel_id
+            self.dct_k_tbtrainingcourses_v_slide_channel[
+                obj_id_i
+            ] = obj_slide_channel_id
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
                     f" '{name}' id {obj_id_i}"
                 )
-        self.dct_tbtrainingcourses = dct_tbtrainingcourses
 
     def continue_migrate_tbTrainingCourses_knowledge_question(
         self, obj_slide_channel_id, test_id_tbl
@@ -1439,9 +1429,9 @@ class Migration:
             a for a in lst_tbl_knowledge_test if a.TestID == test_id_tbl
         ]
         if not lst_knowledge_test_tbl:
-            _logger.warning(
-                f"About tbKnowledgeTests, missing TestID {test_id_tbl}"
-            )
+            msg = f"About tbKnowledgeTests, missing TestID {test_id_tbl}"
+            _logger.warning(msg)
+            self.lst_warning.append(msg)
             return False, False
         knowledge_test_tbl = lst_knowledge_test_tbl[0]
 
@@ -1454,9 +1444,9 @@ class Migration:
             a for a in lst_tbl_knowledge_question if a.TestID == test_id_tbl
         ]
         if not lst_knowledge_question_tbl:
-            _logger.warning(
-                f"About tbKnowledgeQuestions, missing TestID {test_id_tbl}"
-            )
+            msg = f"About tbKnowledgeQuestions, missing TestID {test_id_tbl}"
+            _logger.warning(msg)
+            self.lst_warning.append(msg)
             return False, False
 
         # Survey.question.answer init
@@ -1506,10 +1496,12 @@ class Migration:
                 if a.QuestionID == tbl_knowledge_question_id
             ]
             if not lst_knowledge_question_answer_tbl:
-                _logger.warning(
+                msg = (
                     "About tbKnowledgeAnswerChoices, missing"
                     f" QuestionID {tbl_knowledge_question_id}"
                 )
+                _logger.warning(msg)
+                self.lst_warning.append(msg)
                 continue
             # TODO AnswerEN
             for (
@@ -1570,7 +1562,7 @@ class Migration:
             "user_id": default_user_seller_id.id,
         }
         obj_slide = env["slide.slide"].create(value_slide)
-        self.dct_slide_survey_id[obj_survey.id] = obj_slide
+        self.dct_k_survey_v_slide_survey_id[obj_survey.id] = obj_slide
         return obj_slide
 
     def continue_migrate_tbTrainingCourses_knownledge_answer(self):
@@ -1585,26 +1577,30 @@ class Migration:
                 tbl_knowledge_test_results.UserID
             )
             if not partner_id:
-                _logger.error(
+                msg = (
                     "Cannot find partner_id for UserID"
                     f" '{tbl_knowledge_test_results.UserID}'"
                 )
+                _logger.error(msg)
+                self.lst_error.append(msg)
                 continue
 
             obj_survey = self.dct_k_knowledgetest_v_survey_id.get(
                 tbl_knowledge_test_results.TestID
             )
             if not obj_survey:
-                _logger.error(
+                msg = (
                     "Cannot find survey for TestID"
                     f" '{tbl_knowledge_test_results.TestID}'"
                 )
+                _logger.error(msg)
+                self.lst_error.append(msg)
                 continue
             # DONE Ignore Grade, will be recalcul, validate the value is good by a warning
             # DONE validate IsSuccessful
             # TODO start date and end date is the same
             # DONE last_displayed_page_id select last question id
-            obj_slide = self.dct_slide_survey_id[obj_survey.id]
+            obj_slide = self.dct_k_survey_v_slide_survey_id[obj_survey.id]
 
             # Create partner input survey
             value_survey_user_input = {
@@ -1639,12 +1635,13 @@ class Migration:
                         associate_answer_result.AnswerID
                     ]
                 except Exception as e:
-                    _logger.error(
+                    msg = (
                         "Cannot retreive answer ID"
                         f" {associate_answer_result.AnswerID} for"
                         " survey_question_answer."
                     )
-                    # _logger.error(e)
+                    _logger.error(msg)
+                    self.lst_error.append(msg)
                     continue
                 value_survey_user_input_line = {
                     "user_input_id": obj_survey_user_input.id,
@@ -1753,12 +1750,16 @@ class Migration:
             user_name = tbusers.UserName.lower().strip()
 
             if email != user_name:
-                _logger.warning(
+                msg = (
                     f"User name '{user_name}' is different from email"
                     f" '{email}'"
                 )
+                _logger.warning(msg)
+                self.lst_warning.append(msg)
             if not user_name:
-                _logger.error(f"Missing user name for membre {tbusers}")
+                msg = f"Missing user name for membre {tbusers}"
+                _logger.error(msg)
+                self.lst_error.append(msg)
 
             # Country mapping
             dct_country_mapping = {
@@ -1886,27 +1887,6 @@ class Migration:
                 "res_id": obj_partner_id.id,
             }
             env["mail.message"].create(comment_value)
-
-            # Add memo message
-            # if membre.Memo:
-            #     html_memo = membre.Memo.replace("\n", "<br/>")
-            #     comment_message = (
-            #         f"<b>Mémo avant migration</b><br/>{html_memo}"
-            #     )
-            #
-            #     comment_value = {
-            #         "subject": (
-            #             "Mémo avant migration - Plateforme Espace"
-            #             " Membre"
-            #         ),
-            #         "body": f"<p>{comment_message}</p>",
-            #         "parent_id": False,
-            #         "message_type": "comment",
-            #         "author_id": SUPERUSER_ID,
-            #         "model": "companie.membre",
-            #         "res_id": obj_companie_membre.id,
-            #     }
-            #     env["mail.message"].create(comment_value)
 
             if obj_id_i == DEFAULT_SELL_USER_ID:
                 value = {

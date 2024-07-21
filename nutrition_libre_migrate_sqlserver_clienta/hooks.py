@@ -125,7 +125,7 @@ def post_init_hook(cr, e):
     ]
     print(f"Migrate into {len(lst_model)} models.")
     for model in lst_model:
-        print(f"{model} count {len(env[model].search([]))}")
+        print(f"{len(env[model].search([]))} {model}")
 
 
 class Struct(object):
