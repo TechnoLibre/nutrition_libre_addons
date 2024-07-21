@@ -86,7 +86,6 @@ def post_init_hook(cr, e):
     # migration.migrate_tbStoreItemContentPackages()
     # migration.migrate_tbStoreItemContents()
     # migration.migrate_tbStoreItemContentTypes()
-    # migration.migrate_tbStoreItemPictures()
     migration.migrate_tbStoreItems()
     # migration.migrate_tbStoreItemTaxes()
     # migration.migrate_tbStoreItemTrainingCourses()
@@ -431,6 +430,8 @@ class Migration:
         """
         :return:
         """
+        if not MIGRATE_COUPON:
+            return
         _logger.info("Migrate tbCoupons")
         env = api.Environment(self.cr, SUPERUSER_ID, {})
         if self.dct_k_tbcoupons_v_loyalty_program:
@@ -495,7 +496,10 @@ class Migration:
                     self.lst_warning.append(msg)
 
             if lst_associate_item and not lst_product:
-                msg = f"Coupon id {obj_id_i} has not product associate, it's empty."
+                msg = (
+                    f"Coupon id {obj_id_i} has not product associate, it's"
+                    " empty."
+                )
                 _logger.warning(msg)
                 self.lst_warning.append(msg)
 
@@ -1061,44 +1065,6 @@ class Migration:
                 )
 
         self.dct_tbstoreitemcontenttypes = dct_tbstoreitemcontenttypes
-
-    def migrate_tbStoreItemPictures(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreItemPictures")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreitempictures:
-            return
-        dct_tbstoreitempictures = {}
-        table_name = f"{self.db_name}.dbo.tbStoreItemPictures"
-        lst_tbl_tbstoreitempictures = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbstoreitempictures in enumerate(lst_tbl_tbstoreitempictures):
-            if DEBUG_LIMIT and i > LIMIT:
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitempictures)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreitempictures.ID
-            # name = tbstoreitempictures.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreitempictures[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreitempictures = dct_tbstoreitempictures
 
     def migrate_tbStoreItems(self):
         """
@@ -2113,9 +2079,6 @@ class Migration:
                     state_id = 1668
 
             # TODO IsAnimator is internal member, else only portal member
-            # TODO support DateOfBirth
-            # TODO support Gender
-            # TODO show lastUpdate migration note field LastUpdatedDate + CreatedDate
             # Info ignore DisplayName, FirstName, Gender, ProperName, LastName, ProviderUserKey, UserId
             # TODO Occupation if exist
             value = {
@@ -2123,9 +2086,13 @@ class Migration:
                 "email": email,
                 "state_id": state_id,
                 "country_id": country_id,
+                "gender": "female" if tbusers.Gender else "male",
                 "tz": "America/Montreal",
                 "create_date": tbusers.CreatedDate,
             }
+
+            if tbusers.DateOfBirth:
+                value["birthdate_date"] = tbusers.DateOfBirth
 
             if tbusers.AddressLine1 and tbusers.AddressLine1.strip():
                 value["street"] = tbusers.AddressLine1.strip()
@@ -2161,18 +2128,20 @@ class Migration:
                 env["mailing.contact"].create(value_mailing_list_contact)
 
             # Add message about migration information
-            genre = "femme" if tbusers.Gender else "homme"
-            comment_message = f"Genre : {genre}<br/>"
+            comment_message = (
+                "Date de création :"
+                f" {tbusers.CreatedDate.strftime('%Y/%d/%m %H:%M:%S')}<br/>"
+            )
             if tbusers.LastUpdatedDate:
                 comment_message += (
                     "Dernière modification :"
                     f" {tbusers.LastUpdatedDate.strftime('%Y/%d/%m %H:%M:%S')}<br/>"
                 )
-            if tbusers.DateOfBirth:
-                comment_message += (
-                    "Date de naissance :"
-                    f" {tbusers.DateOfBirth.strftime('%Y/%d/%m')}<br/>"
-                )
+            # if tbusers.DateOfBirth:
+            #     comment_message += (
+            #         "Date de naissance :"
+            #         f" {tbusers.DateOfBirth.strftime('%Y/%d/%m')}<br/>"
+            #     )
             if tbusers.IsAnimator:
                 comment_message += f"Est un animateur<br/>"
             if tbusers.Occupation:
