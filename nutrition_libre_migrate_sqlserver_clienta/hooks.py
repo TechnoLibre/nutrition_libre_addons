@@ -21,7 +21,7 @@ HOST = "localhost"
 USER = ""
 PASSWD = ""
 DB_NAME = ""
-DEFAULT_SELL_USER_ID = 1
+DEFAULT_SELL_USER_ID = 2  # or 8
 
 try:
     import pymssql
@@ -42,7 +42,7 @@ BACKUP_PATH = "/tmp/"
 FILE_PATH = f"{BACKUP_PATH}/document/doc"
 SECRET_PASSWORD = ""
 DEBUG_LIMIT = False
-LIMIT = 200
+LIMIT = 20
 FORCE_ADD_USER_EMAIL = ""
 GENERIC_EMAIL = f"%s_membre@exemple.ca"
 ENABLE_TIER_VALIDATION = True
@@ -98,6 +98,34 @@ def post_init_hook(cr, e):
         print("Got error :")
         for err in migration.lst_error:
             print(f"\t{err}")
+
+    # Print summary
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    lst_model = [
+        "res.partner",
+        "res.users",
+        "product.category",
+        "slide.channel",
+        "survey.survey",
+        "survey.question",
+        "survey.question.answer",
+        "slide.slide",
+        "survey.user_input",
+        "survey.user_input.line",
+        "slide.channel.partner",
+        "slide.slide.partner",
+        "event.event",
+        "event.event.ticket",
+        "product.template",
+        "sale.order",
+        "sale.order.line",
+        "event.registration",
+        "account.move",
+        "account.payment",
+    ]
+    print(f"Migrate into {len(lst_model)} models.")
+    for model in lst_model:
+        print(f"{model} count {len(env[model].search([]))}")
 
 
 class Struct(object):
@@ -724,242 +752,6 @@ class Migration:
                     #     _logger.error(e)
                     #     continue
                     if membre.UserID == DEFAULT_SELL_USER_ID:
-                        #     permission = self._get_permission_no_membre(
-                        #         membre.NoMembre
-                        #     )
-                        #
-                        #     type_compte = self._get_type_compte_no_membre(
-                        #         membre.NoMembre
-                        #     )
-                        #
-                        #     is_admin = type_compte and (
-                        #         type_compte.Admin
-                        #         or type_compte.AdminChef
-                        #         or type_compte.Reseau
-                        #     )
-                        #
-                        #     is_internal_member = (
-                        #         permission
-                        #         and (
-                        #             permission.GestionProfil
-                        #             or permission.GestionCatSousCat
-                        #             # not use
-                        #             # or permission.GestionOffre
-                        #             or permission.GestionOffreMembre
-                        #             or permission.SaisieEchange
-                        #             # not use
-                        #             # or permission.Validation
-                        #             or permission.GestionDmd
-                        #             or permission.GroupeAchat
-                        #             # not admin permission
-                        #             or permission.ConsulterProfil
-                        #             or permission.ConsulterEtatCompte
-                        #             or permission.GestionFichier
-                        #         )
-                        #         or is_admin
-                        #     )
-                        #
-                        #     if is_internal_member:
-                        #         if is_admin:
-                        #             nb_admin += 1
-                        #         else:
-                        #             nb_membre_int += 1
-                        #     else:
-                        #         nb_membre_ext += 1
-                        #
-                        #     groups_id = []
-                        #     if is_internal_member:
-                        #         groups_id.append(
-                        #             (4, env.ref("base.group_user").id)
-                        #         )
-                        #         if is_admin:
-                        #             if type_compte.Admin:
-                        #                 groups_id.append(
-                        #                     (
-                        #                         4,
-                        #                         env.ref(
-                        #                             "companie.group_companie_admin"
-                        #                         ).id,
-                        #                     )
-                        #                 )
-                        #             if type_compte.AdminChef:
-                        #                 groups_id.append(
-                        #                     (
-                        #                         4,
-                        #                         env.ref(
-                        #                             "companie.group_companie_admin_chef"
-                        #                         ).id,
-                        #                     )
-                        #                 )
-                        #                 groups_id.append(
-                        #                     (
-                        #                         4,
-                        #                         env.ref(
-                        #                             "base.group_erp_manager"
-                        #                         ).id,
-                        #                     )
-                        #                 )
-                        #             if type_compte.Reseau:
-                        #                 groups_id.append(
-                        #                     (
-                        #                         4,
-                        #                         env.ref(
-                        #                             "companie.group_companie_admin_reseau"
-                        #                         ).id,
-                        #                     )
-                        #                 )
-                        #         if permission.GestionProfil:
-                        #             groups_id.append(
-                        #                 (
-                        #                     4,
-                        #                     env.ref(
-                        #                         "companie.group_companie_gestion_membre"
-                        #                     ).id,
-                        #                 )
-                        #             )
-                        #         if permission.GestionCatSousCat:
-                        #             groups_id.append(
-                        #                 (
-                        #                     4,
-                        #                     env.ref(
-                        #                         "companie.group_companie_gestion_type_service"
-                        #                     ).id,
-                        #                 )
-                        #             )
-                        #         if permission.GestionOffreMembre:
-                        #             groups_id.append(
-                        #                 (
-                        #                     4,
-                        #                     env.ref(
-                        #                         "companie.group_companie_gestion_offre_de_service"
-                        #                     ).id,
-                        #                 )
-                        #             )
-                        #         if permission.GestionDmd:
-                        #             groups_id.append(
-                        #                 (
-                        #                     4,
-                        #                     env.ref(
-                        #                         "companie.group_companie_gestion_demande_de_service"
-                        #                     ).id,
-                        #                 )
-                        #             )
-                        #         if permission.GroupeAchat:
-                        #             groups_id.append(
-                        #                 (
-                        #                     4,
-                        #                     env.ref(
-                        #                         "companie.group_companie_gestion_achat"
-                        #                     ).id,
-                        #                 )
-                        #             )
-                        #         if permission.GestionFichier:
-                        #             groups_id.append(
-                        #                 (
-                        #                     4,
-                        #                     env.ref(
-                        #                         "companie.group_companie_gestion_fichier"
-                        #                     ).id,
-                        #                 )
-                        #             )
-                        #         if permission.SaisieEchange:
-                        #             groups_id.append(
-                        #                 (
-                        #                     4,
-                        #                     env.ref(
-                        #                         "companie.group_companie_gestion_echange"
-                        #                     ).id,
-                        #                 )
-                        #             )
-                        #         if permission.ConsulterEtatCompte:
-                        #             groups_id.append(
-                        #                 (
-                        #                     4,
-                        #                     env.ref(
-                        #                         "companie.group_companie_consulter_etat_companie"
-                        #                     ).id,
-                        #                 )
-                        #             )
-                        #         if permission.ConsulterProfil:
-                        #             groups_id.append(
-                        #                 (
-                        #                     4,
-                        #                     env.ref(
-                        #                         "companie.group_companie_consulter_membre"
-                        #                     ).id,
-                        #                 )
-                        #             )
-                        #
-                        #     else:
-                        #         groups_id.append(
-                        #             (6, 0, [env.ref("base.group_portal").id])
-                        #         )
-                        #
-                        #     if is_admin:
-                        #         type_member = "admin"
-                        #     elif is_internal_member:
-                        #         type_member = "member interne"
-                        #     else:
-                        #         type_member = "member externe"
-                        #
-                        #     if not DISABLE_CREATE_USER:
-                        #         no_reset_password = True
-                        #         if not membre.MotDePasseRaw:
-                        #             msg = (
-                        #                 f"{pos_id} - MISSING PASSWORD, force"
-                        #                 " recreate it - tbl_membre -"
-                        #                 f" '{type_member}' - ADDED '{name}' login"
-                        #                 f" '{login}' email '{email}' id"
-                        #                 f" {membre.NoMembre}"
-                        #             )
-                        #             _logger.warning(msg)
-                        #             self.lst_warning.append(msg)
-                        #             no_reset_password = False
-                        #         elif membre.MotDePasseRaw == membre.Courriel:
-                        #             msg = (
-                        #                 f"{pos_id} - PASSWORD same of email, force"
-                        #                 " recreate it - tbl_membre -"
-                        #                 f" '{type_member}' - ADDED '{name}' login"
-                        #                 f" '{login}' email '{email}' id"
-                        #                 f" {membre.NoMembre}"
-                        #             )
-                        #             _logger.warning(msg)
-                        #             self.lst_warning.append(msg)
-                        #             no_reset_password = False
-                        #         elif membre.MotDePasseRaw == membre.NomUtilisateur:
-                        #             msg = (
-                        #                 f"{pos_id} - PASSWORD same of nom"
-                        #                 " utilisateur, force recreate it -"
-                        #                 f" tbl_membre - '{type_member}' - ADDED"
-                        #                 f" '{name}' login '{login}' email"
-                        #                 f" '{email}' id {membre.NoMembre}"
-                        #             )
-                        #             _logger.warning(msg)
-                        #             self.lst_warning.append(msg)
-                        #             no_reset_password = False
-                        #         elif membre.MotDePasseRaw == membre.Nom:
-                        #             msg = (
-                        #                 f"{pos_id} - PASSWORD same of nom, force"
-                        #                 " recreate it - tbl_membre -"
-                        #                 f" '{type_member}' - ADDED '{name}' login"
-                        #                 f" '{login}' email '{email}' id"
-                        #                 f" {membre.NoMembre}"
-                        #             )
-                        #             _logger.warning(msg)
-                        #             self.lst_warning.append(msg)
-                        #             no_reset_password = False
-                        #         elif membre.MotDePasseRaw == membre.Prenom:
-                        #             msg = (
-                        #                 f"{pos_id} - PASSWORD same of prenom,"
-                        #                 " force recreate it - tbl_membre -"
-                        #                 f" '{type_member}' - ADDED '{name}' login"
-                        #                 f" '{login}' email '{email}' id"
-                        #                 f" {membre.NoMembre}"
-                        #             )
-                        #             _logger.warning(msg)
-                        #             self.lst_warning.append(msg)
-                        #             no_reset_password = False
-                        #
 
                         value = {
                             "name": obj_partner.name,
@@ -1350,22 +1142,6 @@ class Migration:
                 )
                 continue
 
-            # Survey.question init
-            lbl_knowledge_question = f"{self.db_name}.dbo.tbKnowledgeQuestions"
-            lst_tbl_knowledge_question = self.dct_tbl.get(
-                lbl_knowledge_question
-            )
-            lst_knowledge_question_tbl = [
-                a
-                for a in lst_tbl_knowledge_question
-                if a.TestID == test_id_tbl
-            ]
-            if not lst_knowledge_question_tbl:
-                _logger.warning(
-                    f"About tbKnowledgeQuestions, missing TestID {test_id_tbl}"
-                )
-                continue
-
             # Survey.question.answer init
             lbl_knowledge_question_answer = (
                 f"{self.db_name}.dbo.tbKnowledgeAnswerChoices"
@@ -1599,6 +1375,7 @@ class Migration:
             else:
                 if not obj_slide_partner.completed and completed:
                     obj_slide_partner.completed = True
+        # TODO here
         for store_item in lst_tbl_store_item:
             # ? ItemOrder
             # ? ItemShippingFee
@@ -1833,7 +1610,9 @@ class Migration:
                             paid_amount=invoice_id.amount_total,
                         ).js_assign_outstanding_line(payment_ml.id)
                         if not payment_ml.reconciled:
-                            _logger.warning(f"Facture non payé id %s" % invoice_id.id)
+                            _logger.warning(
+                                f"Facture non payé id %s" % invoice_id.id
+                            )
                         # partials = res.get("partials")
                         # if partials:
                         #     print(partials)

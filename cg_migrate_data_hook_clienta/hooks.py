@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 
@@ -16,6 +17,7 @@ PASSWD = ""
 DB_NAME = ""
 BACKUP_PATH = "/tmp/"
 FILE_PATH = f"{BACKUP_PATH}/document/doc"
+DEBUG_OUTPUT = True
 DEBUG_LIMIT = False
 LIMIT = 20
 GENERIC_EMAIL = f"%s_membre@exemple.ca"
@@ -59,6 +61,29 @@ def post_init_hook(cr, e):
     # migration.migrate_tbKnowledgeTests()
     # migration.migrate_tbMailTemplates()
     migration.migrate_tbStoreCategories()
+    migration.migrate_tbTrainingCourses()
+    for (
+        obj_id_i,
+        obj_slide_channel_id,
+    ) in migration.dct_tbtrainingcourses.items():
+        (
+            obj_survey_id,
+            first_knowledge_test_id,
+        ) = migration.continue_migrate_tbTrainingCourses_knowledge_question(
+            obj_slide_channel_id,
+            obj_id_i,
+        )
+        if obj_survey_id is False or first_knowledge_test_id is False:
+            continue
+        object_slide_id = (
+            migration.continue_migrate_tbTrainingCourses_slide_slide(
+                first_knowledge_test_id,
+                obj_slide_channel_id,
+                obj_survey_id,
+            )
+        )
+
+    migration.continue_migrate_tbTrainingCourses_knownledge_answer()
     # migration.migrate_tbStoreItemAnimators()
     # migration.migrate_tbStoreItemContentPackageMappings()
     # migration.migrate_tbStoreItemContentPackages()
@@ -73,7 +98,6 @@ def post_init_hook(cr, e):
     # migration.migrate_tbStoreShoppingCartItems()
     # migration.migrate_tbStoreShoppingCartItemTaxes()
     # migration.migrate_tbStoreShoppingCarts()
-    # migration.migrate_tbTrainingCourses()
 
     # Show information about computing migration.
     if migration.lst_generic_email:
@@ -92,6 +116,34 @@ def post_init_hook(cr, e):
         print("Got error :")
         for err in migration.lst_error:
             print(f"\t{err}")
+
+    # Print summary
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    lst_model = [
+        "res.partner",
+        "res.users",
+        "product.category",
+        "slide.channel",
+        "survey.survey",
+        "survey.question",
+        "survey.question.answer",
+        "slide.slide",
+        "survey.user_input",
+        "survey.user_input.line",
+        "slide.channel.partner",
+        "slide.slide.partner",
+        "event.event",
+        "event.event.ticket",
+        "product.template",
+        "sale.order",
+        "sale.order.line",
+        "event.registration",
+        "account.move",
+        "account.payment",
+    ]
+    print(f"Migrate into {len(lst_model)} models.")
+    for model in lst_model:
+        print(f"{model} count {len(env[model].search([]))}")
 
 
 class Struct(object):
@@ -118,9 +170,8 @@ class Migration:
         self.dct_tbcoupons = {}
         self.dct_tbexpensecategories = {}
         self.dct_tbgalleryitems = {}
-        self.dct_tbknowledgeanswerchoices = {}
-        self.dct_tbknowledgeanswerresults = {}
-        self.dct_tbknowledgequestions = {}
+        self.dct_k_tbknowledgeanswerresults_v_survey_question_answer = {}
+        self.dct_k_tbknowledgequestions_v_survey_question = {}
         self.dct_tbknowledgetestresults = {}
         self.dct_tbknowledgetests = {}
         self.dct_tbmailtemplates = {}
@@ -144,6 +195,8 @@ class Migration:
         # Model into cache
         self.dct_res_user_id = {}
         self.dct_partner_id = {}
+        self.dct_k_knowledgetest_v_survey_id = {}
+        self.dct_slide_survey_id = {}
         # Database information
         assert pymssql
         self.host = HOST
@@ -291,10 +344,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbanimators[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbanimators = dct_tbanimators
 
@@ -328,10 +382,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbcontents[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbcontents = dct_tbcontents
 
@@ -365,10 +420,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbcouponalloweditems[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbcouponalloweditems = dct_tbcouponalloweditems
 
@@ -402,10 +458,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbcoupons[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbcoupons = dct_tbcoupons
 
@@ -439,10 +496,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbexpensecategories[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbexpensecategories = dct_tbexpensecategories
 
@@ -476,10 +534,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbgalleryitems[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbgalleryitems = dct_tbgalleryitems
 
@@ -515,10 +574,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbknowledgeanswerchoices[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbknowledgeanswerchoices = dct_tbknowledgeanswerchoices
 
@@ -528,7 +588,7 @@ class Migration:
         """
         _logger.info("Migrate tbKnowledgeAnswerResults")
         env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbknowledgeanswerresults:
+        if self.dct_k_tbknowledgeanswerresults_v_survey_question_answer:
             return
         dct_tbknowledgeanswerresults = {}
         table_name = f"{self.db_name}.dbo.tbKnowledgeAnswerResults"
@@ -554,12 +614,15 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbknowledgeanswerresults[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
-        self.dct_tbknowledgeanswerresults = dct_tbknowledgeanswerresults
+        self.dct_k_tbknowledgeanswerresults_v_survey_question_answer = (
+            dct_tbknowledgeanswerresults
+        )
 
     def migrate_tbKnowledgeQuestions(self):
         """
@@ -567,7 +630,7 @@ class Migration:
         """
         _logger.info("Migrate tbKnowledgeQuestions")
         env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbknowledgequestions:
+        if self.dct_k_tbknowledgequestions_v_survey_question:
             return
         dct_tbknowledgequestions = {}
         table_name = f"{self.db_name}.dbo.tbKnowledgeQuestions"
@@ -591,12 +654,15 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbknowledgequestions[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
-        self.dct_tbknowledgequestions = dct_tbknowledgequestions
+        self.dct_k_tbknowledgequestions_v_survey_question = (
+            dct_tbknowledgequestions
+        )
 
     def migrate_tbKnowledgeTestResults(self):
         """
@@ -630,10 +696,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbknowledgetestresults[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbknowledgetestresults = dct_tbknowledgetestresults
 
@@ -667,10 +734,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbknowledgetests[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbknowledgetests = dct_tbknowledgetests
 
@@ -704,10 +772,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbmailtemplates[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbmailtemplates = dct_tbmailtemplates
 
@@ -741,10 +810,11 @@ class Migration:
             obj_product_category_id = env[model_name].create(value)
 
             dct_tbstorecategories[obj_id_i] = obj_product_category_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstorecategories = dct_tbstorecategories
 
@@ -778,10 +848,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreitemanimators[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreitemanimators = dct_tbstoreitemanimators
 
@@ -821,10 +892,11 @@ class Migration:
             dct_tbstoreitemcontentpackagemappings[
                 obj_id_i
             ] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreitemcontentpackagemappings = (
             dct_tbstoreitemcontentpackagemappings
@@ -862,10 +934,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreitemcontentpackages[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreitemcontentpackages = dct_tbstoreitemcontentpackages
 
@@ -899,10 +972,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreitemcontents[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreitemcontents = dct_tbstoreitemcontents
 
@@ -938,10 +1012,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreitemcontenttypes[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreitemcontenttypes = dct_tbstoreitemcontenttypes
 
@@ -975,10 +1050,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreitempictures[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreitempictures = dct_tbstoreitempictures
 
@@ -1012,10 +1088,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreitems[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreitems = dct_tbstoreitems
 
@@ -1049,10 +1126,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreitemtaxes[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreitemtaxes = dct_tbstoreitemtaxes
 
@@ -1088,10 +1166,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreitemtrainingcourses[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreitemtrainingcourses = dct_tbstoreitemtrainingcourses
 
@@ -1164,10 +1243,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreshoppingcartitemcoupons[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreshoppingcartitemcoupons = (
             dct_tbstoreshoppingcartitemcoupons
@@ -1205,10 +1285,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreshoppingcartitems[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreshoppingcartitems = dct_tbstoreshoppingcartitems
 
@@ -1244,10 +1325,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreshoppingcartitemtaxes[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreshoppingcartitemtaxes = (
             dct_tbstoreshoppingcartitemtaxes
@@ -1283,10 +1365,11 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbstoreshoppingcarts[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
 
         self.dct_tbstoreshoppingcarts = dct_tbstoreshoppingcarts
 
@@ -1301,31 +1384,344 @@ class Migration:
         dct_tbtrainingcourses = {}
         table_name = f"{self.db_name}.dbo.tbTrainingCourses"
         lst_tbl_tbtrainingcourses = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
+        model_name = "slide.channel"
+
+        default_seller_id = self.dct_partner_id[DEFAULT_SELL_USER_ID]
+        default_seller_id.seller = True
+        default_seller_id.url_handler = default_seller_id.name.replace(
+            " ", "_"
+        )
+        default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
 
         for i, tbtrainingcourses in enumerate(lst_tbl_tbtrainingcourses):
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbtrainingcourses)}"
-            # TODO update variable name from database table
-            obj_id_i = tbtrainingcourses.ID
-            # name = tbtrainingcourses.Name
-            name = ""
+
+            # Slide Channel
+            # TODO Duration -> create a statistics, check _compute_slides_statistics
+            # Ignore CourseID
+            # TODO ReleaseDate
+            obj_id_i = tbtrainingcourses.TestID
+            name = tbtrainingcourses.CourseName
 
             value = {
                 "name": name,
+                # "description": slide_channel.Description.strip(),
+                "is_published": True,
+                "visibility": "public",
+                "enroll": "payment",
+                "create_date": tbtrainingcourses.CreatedDate,
+                "seller_id": default_seller_id.id,
+                "user_id": default_user_seller_id.id,
             }
 
-            obj_res_partner_id = env[model_name].create(value)
+            obj_slide_channel_id = env[model_name].create(value)
 
-            dct_tbtrainingcourses[obj_id_i] = obj_res_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' id {obj_id_i}"
-            )
-
+            dct_tbtrainingcourses[obj_id_i] = obj_slide_channel_id
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' id {obj_id_i}"
+                )
         self.dct_tbtrainingcourses = dct_tbtrainingcourses
+
+    def continue_migrate_tbTrainingCourses_knowledge_question(
+        self, obj_slide_channel_id, test_id_tbl
+    ):
+        default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
+        env = api.Environment(self.cr, SUPERUSER_ID, {})
+
+        lbl_knowledge_test = f"{self.db_name}.dbo.tbKnowledgeTests"
+        lst_tbl_knowledge_test = self.dct_tbl.get(lbl_knowledge_test)
+        lst_knowledge_test_tbl = [
+            a for a in lst_tbl_knowledge_test if a.TestID == test_id_tbl
+        ]
+        if not lst_knowledge_test_tbl:
+            _logger.warning(
+                f"About tbKnowledgeTests, missing TestID {test_id_tbl}"
+            )
+            return False, False
+        knowledge_test_tbl = lst_knowledge_test_tbl[0]
+
+        obj_slide_channel_id.description = knowledge_test_tbl.CertificateBodyFR
+
+        # Survey.question init
+        lbl_knowledge_question = f"{self.db_name}.dbo.tbKnowledgeQuestions"
+        lst_tbl_knowledge_question = self.dct_tbl.get(lbl_knowledge_question)
+        lst_knowledge_question_tbl = [
+            a for a in lst_tbl_knowledge_question if a.TestID == test_id_tbl
+        ]
+        if not lst_knowledge_question_tbl:
+            _logger.warning(
+                f"About tbKnowledgeQuestions, missing TestID {test_id_tbl}"
+            )
+            return False, False
+
+        # Survey.question.answer init
+        lbl_knowledge_question_answer = (
+            f"{self.db_name}.dbo.tbKnowledgeAnswerChoices"
+        )
+        lst_tbl_knowledge_question_answer = self.dct_tbl.get(
+            lbl_knowledge_question_answer
+        )
+
+        # Survey.survey create
+        # TODO if enable certification_give_badge, need to create gamification.badge and associate to certification_badge_id
+        value_survey_survey = {
+            "title": knowledge_test_tbl.TestName,
+            "certification": True,
+            # "certification_give_badge": True,
+            "scoring_type": "scoring_with_answers",
+            "user_id": default_user_seller_id.id,
+        }
+        obj_survey = env["survey.survey"].create(value_survey_survey)
+        self.dct_k_knowledgetest_v_survey_id[
+            knowledge_test_tbl.TestID
+        ] = obj_survey
+
+        for knowledge_question_tbl in lst_knowledge_question_tbl:
+            # ignore EN like QuestionEN and SubjectEN
+            # TODO SubjectFR
+            base_qvalues = {
+                "sequence": knowledge_question_tbl.QuestionOrder + 9,
+                "title": knowledge_question_tbl.QuestionFR,
+                "survey_id": obj_survey.id,
+            }
+            if knowledge_question_tbl.SubjectFR:
+                base_qvalues[
+                    "description"
+                ] = f"<p>{knowledge_question_tbl.SubjectFR}</p>"
+            question_id = env["survey.question"].create(base_qvalues)
+            self.dct_k_tbknowledgequestions_v_survey_question[
+                knowledge_question_tbl.QuestionID
+            ] = question_id
+
+            # Continue Survey.question.answer
+            tbl_knowledge_question_id = knowledge_question_tbl.QuestionID
+            lst_knowledge_question_answer_tbl = [
+                a
+                for a in lst_tbl_knowledge_question_answer
+                if a.QuestionID == tbl_knowledge_question_id
+            ]
+            if not lst_knowledge_question_answer_tbl:
+                _logger.warning(
+                    "About tbKnowledgeAnswerChoices, missing"
+                    f" QuestionID {tbl_knowledge_question_id}"
+                )
+                continue
+            # TODO AnswerEN
+            for (
+                knowledge_question_answer_tbl
+            ) in lst_knowledge_question_answer_tbl:
+                sequence = knowledge_question_answer_tbl.AnswerOrder + 9
+                value_answer = {
+                    "sequence": sequence,
+                    "value": knowledge_question_answer_tbl.AnswerFR,
+                    "is_correct": knowledge_question_answer_tbl.IsRightAnswer,
+                    "question_id": question_id.id,
+                    "answer_score": 10
+                    if knowledge_question_answer_tbl.IsRightAnswer
+                    else 0,
+                }
+                question_answer_id = env["survey.question.answer"].create(
+                    value_answer
+                )
+                self.dct_k_tbknowledgeanswerresults_v_survey_question_answer[
+                    knowledge_question_answer_tbl.AnswerID
+                ] = question_answer_id
+        return obj_survey, knowledge_test_tbl
+
+    def continue_migrate_tbTrainingCourses_slide_slide(
+        self,
+        knowledge_test_tbl,
+        obj_slide_channel_id,
+        obj_survey,
+    ):
+        env = api.Environment(self.cr, SUPERUSER_ID, {})
+        default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
+
+        # Create slide.slide
+        ticks = knowledge_test_tbl.TrainingDuration
+        td = datetime.timedelta(microseconds=ticks / 10)
+        days, hours, minutes = (
+            td.days,
+            td.seconds // 3600,
+            td.seconds % 3600 / 60.0,
+        )
+        time_duration_hour = hours
+
+        # TODO Subject
+        # TODO TestKey ??
+        # TODO Trainer - abandon, do it manually
+        # is compute later PassingGrade
+        value_slide = {
+            "name": knowledge_test_tbl.TestName,
+            "channel_id": obj_slide_channel_id.id,
+            "slide_category": "certification",
+            "slide_type": "certification",
+            "description": knowledge_test_tbl.CertificateBodyFR,
+            "survey_id": obj_survey.id,
+            "is_published": True,
+            "website_published": True,
+            "completion_time": time_duration_hour,
+            "create_date": knowledge_test_tbl.DateCreated,
+            "user_id": default_user_seller_id.id,
+        }
+        obj_slide = env["slide.slide"].create(value_slide)
+        self.dct_slide_survey_id[obj_survey.id] = obj_slide
+        return obj_slide
+
+    def continue_migrate_tbTrainingCourses_knownledge_answer(self):
+        env = api.Environment(self.cr, SUPERUSER_ID, {})
+
+        lst_tbl_knowledge_test_results = self.dct_tbl.get(
+            f"{self.db_name}.dbo.tbKnowledgeTestResults"
+        )
+        # Import result survey
+        for tbl_knowledge_test_results in lst_tbl_knowledge_test_results:
+            partner_id = self.dct_partner_id.get(
+                tbl_knowledge_test_results.UserID
+            )
+            if not partner_id:
+                _logger.error(
+                    "Cannot find partner_id for UserID"
+                    f" '{tbl_knowledge_test_results.UserID}'"
+                )
+                continue
+
+            obj_survey = self.dct_k_knowledgetest_v_survey_id.get(
+                tbl_knowledge_test_results.TestID
+            )
+            if not obj_survey:
+                _logger.error(
+                    "Cannot find survey for TestID"
+                    f" '{tbl_knowledge_test_results.TestID}'"
+                )
+                continue
+            # DONE Ignore Grade, will be recalcul, validate the value is good by a warning
+            # DONE validate IsSuccessful
+            # TODO start date and end date is the same
+            # DONE last_displayed_page_id select last question id
+            obj_slide = self.dct_slide_survey_id[obj_survey.id]
+
+            # Create partner input survey
+            value_survey_user_input = {
+                "survey_id": obj_survey.id,
+                "create_date": tbl_knowledge_test_results.DateCreated,
+                "start_datetime": tbl_knowledge_test_results.DateCreated,
+                "end_datetime": tbl_knowledge_test_results.DateCreated,
+                "state": "done",
+                "email": partner_id.email,
+                "nickname": partner_id.name,
+                "partner_id": partner_id.id,
+                # "last_displayed_page_id": 1,
+                "slide_id": obj_slide.id,
+            }
+            obj_survey_user_input = env["survey.user_input"].create(
+                value_survey_user_input
+            )
+            lst_tbl_knowledge_answer_results = self.dct_tbl.get(
+                f"{self.db_name}.dbo.tbKnowledgeAnswerResults"
+            )
+            # Get associate result line
+            lst_associate_answer_result = [
+                a
+                for a in lst_tbl_knowledge_answer_results
+                if a.TestResultID == tbl_knowledge_test_results.TestResultID
+            ]
+            survey_question_answer = None
+            obj_survey_user_input_line = None
+            for associate_answer_result in lst_associate_answer_result:
+                try:
+                    survey_question_answer = self.dct_k_tbknowledgeanswerresults_v_survey_question_answer[
+                        associate_answer_result.AnswerID
+                    ]
+                except Exception as e:
+                    _logger.error(
+                        "Cannot retreive answer ID"
+                        f" {associate_answer_result.AnswerID} for"
+                        " survey_question_answer."
+                    )
+                    # _logger.error(e)
+                    continue
+                value_survey_user_input_line = {
+                    "user_input_id": obj_survey_user_input.id,
+                    "question_id": survey_question_answer.question_id.id,
+                    "answer_type": "suggestion",
+                    "create_date": tbl_knowledge_test_results.DateCreated,
+                    "suggested_answer_id": survey_question_answer.id,
+                    "answer_is_correct": survey_question_answer.is_correct,
+                    "answer_score": 10
+                    if survey_question_answer.is_correct
+                    else 0,
+                }
+                obj_survey_user_input_line = env[
+                    "survey.user_input.line"
+                ].create(value_survey_user_input_line)
+            # Save last question answered
+            if (
+                survey_question_answer is not None
+                and obj_survey_user_input_line is not None
+            ):
+                obj_survey_user_input.last_displayed_page_id = (
+                    survey_question_answer.question_id.id
+                )
+            # Fill channel partner to show certification complete
+            completed = obj_survey_user_input.scoring_success
+            value_slide_channel_partner = {
+                "channel_id": obj_slide.channel_id.id,
+                "completion": 100 if completed else 0,
+                "completed_slides_count": 1 if completed else 0,
+                "completed": completed,
+                "partner_id": partner_id.id,
+                "create_date": tbl_knowledge_test_results.DateCreated,
+            }
+            # Validate if exist
+            obj_slide_channel_partner = env["slide.channel.partner"].search(
+                [
+                    ("partner_id", "=", partner_id.id),
+                    ("channel_id", "=", obj_slide.channel_id.id),
+                ],
+                limit=1,
+            )
+            if obj_slide_channel_partner:
+                if obj_slide_channel_partner.completion != 100 and completed:
+                    obj_slide_channel_partner.completion = 100
+                    # _logger.info(
+                    #     "Increase value complete to 100 for partner id"
+                    #     f" {partner_id.id}"
+                    # )
+                # else:
+                #     obj_slide_channel_partner.completion = 0
+            else:
+                obj_slide_channel_partner = env[
+                    "slide.channel.partner"
+                ].create(value_slide_channel_partner)
+
+            # Create slide.slide.partner
+            # Validate if exist
+            obj_slide_partner = env["slide.slide.partner"].search(
+                [
+                    ("partner_id", "=", partner_id.id),
+                    ("slide_id", "=", obj_slide.id),
+                ],
+                limit=1,
+            )
+            if not obj_slide_partner:
+                value_slide_partner = {
+                    "create_date": tbl_knowledge_test_results.DateCreated,
+                    "slide_id": obj_slide.id,
+                    "partner_id": partner_id.id,
+                    "completed": completed,
+                }
+                obj_slide_partner = env["slide.slide.partner"].create(
+                    value_slide_partner
+                )
+            else:
+                if not obj_slide_partner.completed and completed:
+                    obj_slide_partner.completed = True
 
     def migrate_tbUsers(self):
         """
@@ -1445,10 +1841,12 @@ class Migration:
 
             obj_partner_id = env[model_name].create(value)
             dct_tbusers[obj_id_i] = obj_partner_id
-            _logger.info(
-                f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                f" '{name}' '{email}' id {obj_id_i}"
-            )
+            self.dct_partner_id[obj_id_i] = obj_partner_id
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{name}' '{email}' id {obj_id_i}"
+                )
 
             # Add to mailing list
             if tbusers.ReceiveNewsletter:
