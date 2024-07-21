@@ -1375,7 +1375,6 @@ class Migration:
             else:
                 if not obj_slide_partner.completed and completed:
                     obj_slide_partner.completed = True
-        # TODO here
         for store_item in lst_tbl_store_item:
             # ? ItemOrder
             # ? ItemShippingFee
@@ -1432,6 +1431,7 @@ class Migration:
                 self.dct_product_template[
                     store_item.ItemID
                 ] = product_template_id
+
         for store_shopping_cart in lst_tbl_store_shopping_cart:
             if (
                 not store_shopping_cart.IsCompleted

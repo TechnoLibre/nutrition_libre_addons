@@ -87,14 +87,14 @@ def post_init_hook(cr, e):
     # migration.migrate_tbStoreItemContents()
     # migration.migrate_tbStoreItemContentTypes()
     # migration.migrate_tbStoreItemPictures()
-    # migration.migrate_tbStoreItems()
+    migration.migrate_tbStoreItems()
     # migration.migrate_tbStoreItemTaxes()
     # migration.migrate_tbStoreItemTrainingCourses()
     # migration.migrate_tbStoreItemVariants()
     # migration.migrate_tbStoreShoppingCartItemCoupons()
     # migration.migrate_tbStoreShoppingCartItems()
     # migration.migrate_tbStoreShoppingCartItemTaxes()
-    # migration.migrate_tbStoreShoppingCarts()
+    migration.migrate_tbStoreShoppingCarts()
 
     # Print warning
     if migration.lst_warning:
@@ -180,7 +180,7 @@ class Migration:
         self.dct_tbstoreshoppingcartitemcoupons = {}
         self.dct_tbstoreshoppingcartitems = {}
         self.dct_tbstoreshoppingcartitemtaxes = {}
-        self.dct_tbstoreshoppingcarts = {}
+        self.dct_k_tbstoreshoppingcarts_v_sale_order = {}
         self.dct_k_tbtrainingcourses_v_slide_channel = {}
         self.dct_tbusers = {}
         # Model into cache
@@ -188,6 +188,9 @@ class Migration:
         self.dct_partner_id = {}
         self.dct_k_knowledgetest_v_survey_id = {}
         self.dct_k_survey_v_slide_survey_id = {}
+        self.dct_event = {}
+        self.dct_event_ticket = {}
+        self.dct_product_template = {}
         # Database information
         assert pymssql
         self.host = HOST
@@ -258,9 +261,9 @@ class Migration:
         for table_name, lst_column in dct_tbl.items():
             table = dct_short_tbl[table_name]
             if table not in lst_whitelist_table:
-                msg = f"Skip table '{table}'"
-                _logger.warning(msg)
-                self.lst_warning.append(msg)
+                # msg = f"Skip table '{table}'"
+                # _logger.warning(msg)
+                # self.lst_warning.append(msg)
                 continue
 
             _logger.info(f"Import in cache table '{table}'")
@@ -1053,38 +1056,83 @@ class Migration:
         :return:
         """
         _logger.info("Migrate tbStoreItems")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
         if self.dct_tbstoreitems:
             return
+        env = api.Environment(self.cr, SUPERUSER_ID, {})
+        default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
+        default_seller_id = self.dct_partner_id[DEFAULT_SELL_USER_ID]
         dct_tbstoreitems = {}
         table_name = f"{self.db_name}.dbo.tbStoreItems"
         lst_tbl_tbstoreitems = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
+        model_name = "event.event"
 
         for i, tbstoreitems in enumerate(lst_tbl_tbstoreitems):
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreitems)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreitems.ID
-            # name = tbstoreitems.Name
-            name = ""
+            obj_id_i = tbstoreitems.ItemID
+            # ? ItemOrder
+            # ? ItemShippingFee
+            # DateCreated
+            # ItemSellPrice
+            # ItemBuyCost
+            # ItemDescriptionFR
+            # ItemDescriptionExtentedFR
+            if tbstoreitems.CategoryID in (1, 2):
+                value_event = {
+                    "name": tbstoreitems.ItemNameFR,
+                    "user_id": default_user_seller_id.id,
+                    "organizer_id": default_seller_id.id,
+                    "create_date": tbstoreitems.DateCreated,
+                    "date_begin": tbstoreitems.DateCreated,
+                    "date_end": tbstoreitems.DateCreated,
+                    "date_tz": "America/Montreal",
+                    "is_published": tbstoreitems.IsOnHomePage,
+                    "active": tbstoreitems.IsActive,
+                }
+                event_id = env[model_name].create(value_event)
+                self.dct_event[obj_id_i] = event_id
+                # TODO missing ItemBuyCost
+                price = tbstoreitems.ItemSellPrice / 1.14975
+                value_event_ticket = {
+                    "name": tbstoreitems.ItemNameFR,
+                    "event_id": event_id.id,
+                    "product_id": env.ref(
+                        "event_sale.product_product_event"
+                    ).id,
+                    "price": price,
+                    "create_date": tbstoreitems.DateCreated,
+                }
+                event_ticket_id = env["event.event.ticket"].create(
+                    value_event_ticket
+                )
+                self.dct_event_ticket[obj_id_i] = event_ticket_id
+            else:
+                categorie_id = (
+                    self.dct_k_tbstorecategories_v_product_category.get(
+                        tbstoreitems.CategoryID
+                    )
+                )
+                value_product = {
+                    "name": tbstoreitems.ItemNameFR,
+                    "list_price": tbstoreitems.ItemSellPrice / 1.14975,
+                    "standard_price": tbstoreitems.ItemBuyCost,
+                    "create_date": tbstoreitems.DateCreated,
+                    "categ_id": categorie_id.id,
+                    "is_published": tbstoreitems.IsOnHomePage,
+                    "active": tbstoreitems.IsActive,
+                }
+                product_template_id = env["product.template"].create(
+                    value_product
+                )
+                self.dct_product_template[obj_id_i] = product_template_id
 
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreitems[obj_id_i] = obj_res_partner_id
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
+                    f" '{tbstoreitems.ItemNameFR}' id {obj_id_i}"
                 )
-
-        self.dct_tbstoreitems = dct_tbstoreitems
 
     def migrate_tbStoreItemTaxes(self):
         """
@@ -1331,37 +1379,236 @@ class Migration:
         """
         _logger.info("Migrate tbStoreShoppingCarts")
         env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreshoppingcarts:
+        if self.dct_k_tbstoreshoppingcarts_v_sale_order:
             return
-        dct_tbstoreshoppingcarts = {}
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCarts"
         lst_tbl_tbstoreshoppingcarts = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
+        lst_tbl_store_shopping_cart_item = self.dct_tbl.get(
+            f"{self.db_name}.dbo.tbStoreShoppingCartItems"
+        )
+        default_account_client_recv_id = env["account.account"].search(
+            domain=[("account_type", "=", "asset_receivable")], limit=1
+        )
+        # Configure journal for cash
+        journal_id = env["account.journal"].search(
+            domain=[("type", "=", "cash")],
+            limit=1,
+        )
+        journal_sale_id = env["account.journal"].search(
+            [("type", "=", "sale"), ("company_id", "=", env.company.id)]
+        )[0]
+        model_name = "sale.order"
 
         for i, tbstoreshoppingcarts in enumerate(lst_tbl_tbstoreshoppingcarts):
             if DEBUG_LIMIT and i > LIMIT:
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcarts)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreshoppingcarts.ID
-            # name = tbstoreshoppingcarts.Name
-            name = ""
+            obj_id_i = tbstoreshoppingcarts.CartID
+            if (
+                not tbstoreshoppingcarts.IsCompleted
+                and tbstoreshoppingcarts.ProviderStatusText != "completed"
+            ):
+                continue
+            i += 1
+            if DEBUG_LIMIT and i > LIMIT:
+                continue
+            order_partner_id = self.dct_partner_id.get(
+                tbstoreshoppingcarts.UserID
+            )
+            if not order_partner_id:
+                # Will force public partner
+                order_partner_id = env.ref("base.public_partner")
+                # _logger.error(
+                #     f"Cannot find client {store_shopping_cart.UserID} into"
+                #     f" order {store_shopping_cart.CartID}"
+                # )
+                # continue
+            value_sale_order = {
+                # "name": store_shopping_cart.ItemNameFR,
+                # "list_price": store_item.ItemSellPrice,
+                # "standard_price": store_item.ItemBuyCost,
+                "date_order": tbstoreshoppingcarts.DateCreated,
+                "create_date": tbstoreshoppingcarts.DateCreated,
+                "partner_id": order_partner_id.id,
+                # "is_published": store_item.IsActive,
+                "state": "done",
+            }
+            sale_order_id = env[model_name].create(value_sale_order)
+            # move.action_post()
+            self.dct_k_tbstoreshoppingcarts_v_sale_order[
+                tbstoreshoppingcarts.CartID
+            ] = sale_order_id
+            lst_items = [
+                a
+                for a in lst_tbl_store_shopping_cart_item
+                if a.CartID == tbstoreshoppingcarts.CartID
+            ]
+            if not lst_items:
+                # Create a new one
+                # TODO check store_shopping_cart.ProviderStatusText
+                # TODO check store_shopping_cart.ProviderTransactionID
+                # TODO check store_shopping_cart.TotalAmount
+                # TODO check store_shopping_cart.TotalDiscount
 
-            value = {
-                "name": name,
+                value_sale_order_line = {
+                    "name": "Non défini",
+                    # "list_price": store_item.ItemSellPrice,
+                    # "standard_price": store_item.ItemBuyCost,
+                    "create_date": tbstoreshoppingcarts.DateCreated,
+                    "order_partner_id": order_partner_id.id,
+                    "order_id": sale_order_id.id,
+                    "price_unit": tbstoreshoppingcarts.TotalAmount / 1.14975,
+                    "product_qty": 1,
+                    "display_type": False,
+                    "product_id": 1,
+                    # "tax_ids":
+                    # "is_published": store_item.IsActive,
+                }
+                sale_order_line_id = env["sale.order.line"].create(
+                    value_sale_order_line
+                )
+                _logger.error(
+                    "Need more information, missing charts items for chart"
+                    f" {tbstoreshoppingcarts.CartID}"
+                )
+            else:
+                for item in lst_items:
+                    product_shopping_id = self.dct_product_template.get(
+                        item.ItemID
+                    )
+                    if not product_shopping_id:
+                        event_shopping_id = self.dct_event.get(item.ItemID)
+                        event_ticket_shopping_id = self.dct_event_ticket.get(
+                            item.ItemID
+                        )
+                        product_shopping_id = env.ref(
+                            "event_sale.product_product_event"
+                        )
+                        if not event_shopping_id:
+                            _logger.error(
+                                f"Cannot find product id {item.ItemID}"
+                            )
+                            continue
+                        name = "ticket"
+
+                        value_event_registration = {
+                            "event_id": event_shopping_id.id,
+                            "event_ticket_id": event_ticket_shopping_id.id,
+                            "partner_id": order_partner_id.id,
+                        }
+                        # TODO state change open to done when event is done
+                        event_registration_id = env[
+                            "event.registration"
+                        ].create(value_event_registration)
+                    else:
+                        name = product_shopping_id.name
+                    value_sale_order_line = {
+                        "name": name,
+                        # "list_price": store_item.ItemSellPrice,
+                        # "standard_price": store_item.ItemBuyCost,
+                        "create_date": tbstoreshoppingcarts.DateCreated,
+                        "order_partner_id": order_partner_id.id,
+                        "order_id": sale_order_id.id,
+                        "price_unit": item.ItemSellPrice / 1.14975,
+                        "product_qty": item.Quantity,
+                        "product_id": product_shopping_id.id,
+                        # "is_published": store_item.IsActive,
+                    }
+                    sale_order_line_id = env["sale.order.line"].create(
+                        value_sale_order_line
+                    )
+            # Create invoice
+            # Validate sale order
+            # sale_order_id.action_confirm()
+
+            # Create Invoice
+            invoice_vals = {
+                "move_type": "out_invoice",  # for customer invoice
+                "partner_id": sale_order_id.partner_id.id,
+                "journal_id": journal_sale_id.id,
+                "date": tbstoreshoppingcarts.DateCreated,
+                "invoice_date": tbstoreshoppingcarts.DateCreated,
+                "invoice_origin": sale_order_id.name,
+                "currency_id": env.company.currency_id.id,
+                "company_id": env.company.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": line.product_id.id,
+                            "name": line.name,
+                            "quantity": line.product_uom_qty,
+                            "price_unit": line.price_unit,
+                            "account_id": env.ref(
+                                "l10n_ca.ca_en_chart_template_en"
+                            ).id,
+                            # "tax_ids": False,
+                        },
+                    )
+                    for line in sale_order_id.order_line
+                ],
             }
 
-            obj_res_partner_id = env[model_name].create(value)
+            invoice_id = env["account.move"].create(invoice_vals)
+            invoice_id.action_post()
 
-            dct_tbstoreshoppingcarts[obj_id_i] = obj_res_partner_id
+            # Validate Invoice (optional)
+            # sale_order_id.write({"invoice_ids": [(4, invoice_id.id)]})
+            if invoice_id.amount_total > 0:
+                vals = {
+                    "amount": invoice_id.amount_total,
+                    "date": tbstoreshoppingcarts.DateCreated,
+                    "partner_type": "customer",
+                    "partner_id": sale_order_id.partner_id.id,
+                    "payment_type": "inbound",
+                    "payment_method_id": env.ref(
+                        "account.account_payment_method_manual_in"
+                    ).id,
+                    "journal_id": journal_id.id,
+                    "currency_id": env.company.currency_id.id,
+                    "company_id": env.company.id,
+                }
+                payment_id = env["account.payment"].create(vals)
+                # invoice_id.write({"payment_id": payment_id.id})
+                payment_id.action_post()
+                payment_ml = payment_id.line_ids.filtered(
+                    lambda l: l.account_id == default_account_client_recv_id
+                )
+                res = invoice_id.with_context(
+                    move_id=invoice_id.id,
+                    line_id=payment_ml.id,
+                    paid_amount=invoice_id.amount_total,
+                ).js_assign_outstanding_line(payment_ml.id)
+                if not payment_ml.reconciled:
+                    _logger.warning(f"Facture non payé id %s" % invoice_id.id)
+                # partials = res.get("partials")
+                # if partials:
+                #     print(partials)
+                #     invoice_id.with_context(
+                #         paid_amount=invoice_id.amount_total
+                #     ).js_assign_outstanding_line(payment_ml.id)
+                # print(payment_ml.reconciled)
+                # print(invoice_id.amount_residual)
+                # print(invoice_id.payment_state)
+            # invoice_id.action_post()
+            # invoice_id.js_assign_outstanding_line(payment_id.id)
+            # invoice_id._post()
+
+            # Create invoice
+            # new_invoice = sale_order_id._create_invoices()
+            # Validate invoice
+            # new_invoice.action_post()
+            # new_invoice.invoice_origin = sale_order_id.name + ", 987 - " + self.name
+            # invoice = sale_order_id.invoice_ids
+
+            name = ""
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
                     f" '{name}' id {obj_id_i}"
                 )
-
-        self.dct_tbstoreshoppingcarts = dct_tbstoreshoppingcarts
 
     def migrate_tbTrainingCourses(self):
         """
