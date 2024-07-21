@@ -201,6 +201,11 @@ class Migration:
         self.dct_event = {}
         self.dct_event_ticket = {}
         self.dct_k_tbstoreitems_v_product_template = {}
+        # local variable
+        self.sale_tax_id = None
+        self.sale_tax_TPS_id = None
+        self.sale_tax_TVQ_id = None
+        self.purchase_tax_id = None
         # Database information
         assert pymssql
         self.host = HOST
@@ -319,19 +324,42 @@ class Migration:
             event_config.execute()
         companies = env["res.company"].search([])
         for company in companies:
+            # TPS + TVQ ventes
             sale_tax_id = env["account.tax"].search(
                 [
                     ("company_id", "=", company.id),
                     ("name", "=", "TPS + TVQ sur les ventes"),
                 ]
             )
+            self.sale_tax_id = sale_tax_id
             company.account_sale_tax_id = sale_tax_id.id
+
+            # TPS ventes
+            sale_tax_TPS_id = env["account.tax"].search(
+                [
+                    ("company_id", "=", company.id),
+                    ("name", "=", "TPS sur les ventes - 5%"),
+                ]
+            )
+            self.sale_tax_TPS_id = sale_tax_TPS_id
+
+            # TVQ ventes
+            sale_tax_TVQ_id = env["account.tax"].search(
+                [
+                    ("company_id", "=", company.id),
+                    ("name", "=", "TVQ sur les ventes - 9,975%"),
+                ]
+            )
+            self.sale_tax_TVQ_id = sale_tax_TVQ_id
+
+            # TPS + TVQ achat
             purchase_tax_id = env["account.tax"].search(
                 [
                     ("company_id", "=", company.id),
                     ("name", "=", "TPS + TVQ sur les achats"),
                 ]
             )
+            self.purchase_tax_id = purchase_tax_id
             company.account_purchase_tax_id = purchase_tax_id.id
 
     def migrate_tbAnimators(self):
@@ -1100,6 +1128,9 @@ class Migration:
         default_seller_id = self.dct_partner_id[DEFAULT_SELL_USER_ID]
         table_name = f"{self.db_name}.dbo.tbStoreItems"
         lst_tbl_tbstoreitems = self.dct_tbl.get(table_name)
+        lst_tbl_tbstoreitemTaxes = self.dct_tbl.get(
+            f"{self.db_name}.dbo.tbStoreItemTaxes"
+        )
         model_name = "event.event"
 
         for i, tbstoreitems in enumerate(lst_tbl_tbstoreitems):
@@ -1149,6 +1180,20 @@ class Migration:
                         tbstoreitems.CategoryID
                     )
                 )
+                # Search taxes
+                taxes_item = [
+                    a.TaxID
+                    for a in lst_tbl_tbstoreitemTaxes
+                    if a.ItemID == obj_id_i
+                ]
+                taxes_item_ids = []
+                if 1 in taxes_item and 2 in taxes_item:
+                    taxes_item_ids = self.sale_tax_id.ids
+                elif 1 in taxes_item:
+                    taxes_item_ids = self.sale_tax_TPS_id.ids
+                elif 2 in taxes_item:
+                    taxes_item_ids = self.sale_tax_TVQ_id.ids
+
                 website_description = f"""<section class="s_text_block pt40 pb40 o_colored_level" data-snippet="s_text_block" data-name="Texte" style="background-image: none;">
     <div class="container s_allow_columns">
         <p class="o_default_snippet_text">{tbstoreitems.ItemDescriptionExtendedFR}</p>
@@ -1163,6 +1208,7 @@ class Migration:
                     "is_published": tbstoreitems.IsOnHomePage,
                     "active": tbstoreitems.IsActive,
                     "description_sale": tbstoreitems.ItemDescriptionFR,
+                    "taxes_id": [(6, 0, taxes_item_ids)],
                 }
                 if tbstoreitems.ItemDescriptionExtendedFR:
                     value_product["website_description"] = website_description
