@@ -1,6 +1,6 @@
+import base64
 import datetime
 import logging
-import os
 
 from odoo import SUPERUSER_ID, _, api, fields, models
 from odoo.exceptions import ValidationError
@@ -21,7 +21,9 @@ DEBUG_OUTPUT = True
 DEBUG_LIMIT = False
 LIMIT = 20
 DEFAULT_SELL_USER_ID = 2  # or 8
+MIGRATE_SALE = False
 MIGRATE_INVOICE = False
+MIGRATE_COUPON = False
 
 try:
     import pymssql
@@ -87,6 +89,11 @@ def post_init_hook(cr, e):
     # migration.migrate_tbStoreItemContents()
     # migration.migrate_tbStoreItemContentTypes()
     migration.migrate_tbStoreItems()
+    for (
+        item_id_i,
+        product_id,
+    ) in migration.dct_k_tbstoreitems_v_product_template.items():
+        migration.migrate_tbStoreItemPictures(item_id_i, product_id)
     # migration.migrate_tbStoreItemTaxes()
     # migration.migrate_tbStoreItemTrainingCourses()
     # migration.migrate_tbStoreItemVariants()
@@ -176,8 +183,7 @@ class Migration:
         self.dct_tbstoreitemcontentpackages = {}
         self.dct_tbstoreitemcontents = {}
         self.dct_tbstoreitemcontenttypes = {}
-        self.dct_tbstoreitempictures = {}
-        self.dct_tbstoreitems = {}
+        self.dct_k_tbstoreitempictures_v_product_template = {}
         self.dct_tbstoreitemtaxes = {}
         self.dct_tbstoreitemtrainingcourses = {}
         self.dct_tbstoreitemvariants = {}
@@ -311,6 +317,22 @@ class Migration:
         if not dry_run:
             event_config = env["res.config.settings"].sudo().create(values)
             event_config.execute()
+        companies = env["res.company"].search([])
+        for company in companies:
+            sale_tax_id = env["account.tax"].search(
+                [
+                    ("company_id", "=", company.id),
+                    ("name", "=", "TPS + TVQ sur les ventes"),
+                ]
+            )
+            company.account_sale_tax_id = sale_tax_id.id
+            purchase_tax_id = env["account.tax"].search(
+                [
+                    ("company_id", "=", company.id),
+                    ("name", "=", "TPS + TVQ sur les achats"),
+                ]
+            )
+            company.account_purchase_tax_id = purchase_tax_id.id
 
     def migrate_tbAnimators(self):
         """
@@ -1071,7 +1093,7 @@ class Migration:
         :return:
         """
         _logger.info("Migrate tbStoreItems")
-        if self.dct_tbstoreitems:
+        if self.dct_k_tbstoreitems_v_product_template:
             return
         env = api.Environment(self.cr, SUPERUSER_ID, {})
         default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
@@ -1107,8 +1129,7 @@ class Migration:
                 }
                 event_id = env[model_name].create(value_event)
                 self.dct_event[obj_id_i] = event_id
-                # TODO missing ItemBuyCost
-                price = tbstoreitems.ItemSellPrice / 1.14975
+                price = tbstoreitems.ItemSellPrice
                 value_event_ticket = {
                     "name": tbstoreitems.ItemNameFR,
                     "event_id": event_id.id,
@@ -1128,15 +1149,23 @@ class Migration:
                         tbstoreitems.CategoryID
                     )
                 )
+                website_description = f"""<section class="s_text_block pt40 pb40 o_colored_level" data-snippet="s_text_block" data-name="Texte" style="background-image: none;">
+    <div class="container s_allow_columns">
+        <p class="o_default_snippet_text">{tbstoreitems.ItemDescriptionExtendedFR}</p>
+    </div>
+</section>"""
                 value_product = {
                     "name": tbstoreitems.ItemNameFR,
-                    "list_price": tbstoreitems.ItemSellPrice / 1.14975,
+                    "list_price": tbstoreitems.ItemSellPrice,
                     "standard_price": tbstoreitems.ItemBuyCost,
                     "create_date": tbstoreitems.DateCreated,
                     "categ_id": categorie_id.id,
                     "is_published": tbstoreitems.IsOnHomePage,
                     "active": tbstoreitems.IsActive,
+                    "description_sale": tbstoreitems.ItemDescriptionFR,
                 }
+                if tbstoreitems.ItemDescriptionExtendedFR:
+                    value_product["website_description"] = website_description
                 product_template_id = env["product.template"].create(
                     value_product
                 )
@@ -1148,6 +1177,46 @@ class Migration:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
                     f" '{tbstoreitems.ItemNameFR}' id {obj_id_i}"
+                )
+
+    def migrate_tbStoreItemPictures(self, item_id_i, product_id):
+        """
+        :return:
+        """
+        _logger.info("Migrate tbStoreItemPictures")
+        env = api.Environment(self.cr, SUPERUSER_ID, {})
+        table_name = f"{self.db_name}.dbo.tbStoreItemPictures"
+        lst_tbl_tbstoreitempictures = self.dct_tbl.get(table_name)
+        model_name = "product.template"
+
+        lst_tbl_tbstoreitempictures_filter = [
+            a for a in lst_tbl_tbstoreitempictures if a.ItemID == item_id_i
+        ]
+
+        for i, tbstoreitempictures in enumerate(
+            lst_tbl_tbstoreitempictures_filter
+        ):
+            if DEBUG_LIMIT and i > LIMIT:
+                break
+
+            pos_id = f"{i}/{len(lst_tbl_tbstoreitempictures_filter)}"
+            b64_image = base64.b64encode(tbstoreitempictures.Image)
+            if i == 0:
+                product_id.image_1920 = b64_image
+            value_image = {
+                "name": f"{product_id.name}_{i}",
+                "image_1920": b64_image,
+                "product_tmpl_id": product_id.id,
+            }
+            env["product.image"].create(value_image)
+            obj_id_i = tbstoreitempictures.PictureID
+            self.dct_k_tbstoreitempictures_v_product_template[
+                obj_id_i
+            ] = product_id
+            if DEBUG_OUTPUT:
+                _logger.info(
+                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f" '{product_id.name}' id {obj_id_i}"
                 )
 
     def migrate_tbStoreItemTaxes(self):
@@ -1393,6 +1462,8 @@ class Migration:
         """
         :return:
         """
+        if not MIGRATE_SALE:
+            return
         _logger.info("Migrate tbStoreShoppingCarts")
         env = api.Environment(self.cr, SUPERUSER_ID, {})
         if self.dct_k_tbstoreshoppingcarts_v_sale_order:

@@ -17,6 +17,9 @@ Migrate sqlserver for ClientA
         "survey",
         "event_sale",
         "mass_mailing",
+        "loyalty",
+        "partner_contact_gender",
+        "partner_contact_birthdate",
     ],
     "external_dependencies": {
         "python": [
