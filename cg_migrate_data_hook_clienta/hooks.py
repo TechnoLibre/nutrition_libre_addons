@@ -197,6 +197,7 @@ class Migration:
         self.dct_event = {}
         self.dct_event_ticket = {}
         self.dct_k_tbstoreitems_v_product_template = {}
+        self.dct_k_tbstoreitems_v_event_event = {}
         # local variable
         self.sale_tax_id = None
         self.sale_tax_TPS_id = None
@@ -307,13 +308,7 @@ class Migration:
         env = api.Environment(self.cr, SUPERUSER_ID, {})
         # General configuration
         values = {
-            # 'use_quotation_validity_days': True,
-            # 'quotation_validity_days': 30,
-            # 'portal_confirmation_sign': True,
-            # 'portal_invoice_confirmation_sign': True,
-            # 'group_sale_delivery_address': True,
-            # 'group_sale_order_template': True,
-            # 'default_sale_order_template_id': True,
+            # "group_product_variant": True,
         }
         if not dry_run:
             event_config = env["res.config.settings"].sudo().create(values)
@@ -872,18 +867,37 @@ class Migration:
             # ItemDescriptionFR
             # ItemDescriptionExtentedFR
             if tbstoreitems.CategoryID in (1, 2):
+                date_begin = tbstoreitems.DateCreated
+                # if "DATE" in tbstoreitems.ItemDescriptionExtendedFR:
+                #     pos_date = tbstoreitems.ItemDescriptionExtendedFR.index(
+                #         "DATE :"
+                #     )
+                #     pos_end_date = (
+                #         tbstoreitems.ItemDescriptionExtendedFR.index(
+                #             "<br", pos_date
+                #         )
+                #     )
+                #     extract_date = tbstoreitems.ItemDescriptionExtendedFR[
+                #         pos_date + 6 : pos_end_date
+                #     ].strip()
+                #     if extract_date:
+                #         locale.setlocale(locale.LC_ALL, "fr_CA")
+                #         date_begin = datetime.datetime.strptime(
+                #             extract_date, "%d %B %Y"
+                #         )
                 value_event = {
                     "name": tbstoreitems.ItemNameFR,
                     "user_id": default_user_seller_id.id,
                     "organizer_id": default_seller_id.id,
                     "create_date": tbstoreitems.DateCreated,
-                    "date_begin": tbstoreitems.DateCreated,
-                    "date_end": tbstoreitems.DateCreated,
+                    "date_begin": date_begin,
+                    "date_end": date_begin,
                     "date_tz": "America/Montreal",
                     "is_published": tbstoreitems.IsOnHomePage,
                     "active": tbstoreitems.IsActive,
                 }
                 event_id = env[model_name].create(value_event)
+                self.dct_k_tbstoreitems_v_event_event[obj_id_i] = event_id
                 self.dct_event[obj_id_i] = event_id
                 price = tbstoreitems.ItemSellPrice
                 value_event_ticket = {
@@ -1044,10 +1058,15 @@ class Migration:
         env = api.Environment(self.cr, SUPERUSER_ID, {})
         if self.dct_tbstoreitemvariants:
             return
-        dct_tbstoreitemvariants = {}
         table_name = f"{self.db_name}.dbo.tbStoreItemVariants"
         lst_tbl_tbstoreitemvariants = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
+        model_name = "product.attribute.value"
+
+        # Create generic product attribute
+        value_product_attribute = {"name": "HarmonieSanté avant migration"}
+        product_attribute_id = env["product.attribute"].create(
+            value_product_attribute
+        )
 
         for i, tbstoreitemvariants in enumerate(lst_tbl_tbstoreitemvariants):
             if DEBUG_LIMIT and i > LIMIT:
@@ -1056,25 +1075,61 @@ class Migration:
                 )
                 break
 
+            # TODO not finish to implement, no need it
+
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemvariants)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreitemvariants.ID
-            # name = tbstoreitemvariants.Name
-            name = ""
+            # ItemID
+            # VariantID
+            # VariantOrder - sequence
+            # VariantSellPrice diff avec prix d'avant
+            obj_id_i = tbstoreitemvariants.VariantID
+            name = tbstoreitemvariants.VariantNameFR
 
             value = {
                 "name": name,
+                "attribute_id": product_attribute_id.id,
             }
 
-            obj_res_partner_id = env[model_name].create(value)
+            # Check if exist before, do unique
+            obj_id = env[model_name].search([("name", "=", name)])
+            if not obj_id:
+                try:
+                    obj_id = env[model_name].create(value)
+                except Exception as e:
+                    print(e)
+            else:
+                print("ok")
 
-            dct_tbstoreitemvariants[obj_id_i] = obj_res_partner_id
+            product_template_id = (
+                self.dct_k_tbstoreitems_v_product_template.get(
+                    tbstoreitemvariants.ItemID
+                )
+            )
+
+            if not product_template_id:
+                msg = (
+                    "Cannot find product for ItemID"
+                    f" '{tbstoreitemvariants.ItemID}'"
+                )
+                _logger.warning(msg)
+                self.lst_warning.append(msg)
+                self.dct_data_skip[table_name] += 1
+                continue
+
+            value_product_template_attribute_line = {
+                "active": tbstoreitemvariants.IsActive,
+                "product_tmpl_id": product_template_id.id,
+            }
+
+            env["product.template.attribute.line"].create(
+                value_product_template_attribute_line
+            )
+
+            self.dct_tbstoreitemvariants[obj_id_i] = obj_id
             _logger.info(
                 f"{pos_id} - {model_name} - table {table_name} - ADDED"
                 f" '{name}' id {obj_id_i}"
             )
-
-        self.dct_tbstoreitemvariants = dct_tbstoreitemvariants
 
     def migrate_tbStoreShoppingCartItemCoupons(self):
         """
