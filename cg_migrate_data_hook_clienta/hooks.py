@@ -524,15 +524,18 @@ class Migration:
                     f" '{name}' id {obj_id_i}"
                 )
 
-            value_reward = {
-                "active": tbcoupons.IsActive,
-                "discount": tbcoupons.CouponAmount * 100,
-                "program_id": obj_coupon_id.id,
-                "discount_mode": "percent"
-                if tbcoupons.IsPercent
-                else "per_order",
-            }
-            obj_coupon_reward_id = env["loyalty.reward"].create(value_reward)
+            if tbcoupons.CouponAmount > 0.0:
+                value_reward = {
+                    "active": tbcoupons.IsActive,
+                    "discount": tbcoupons.CouponAmount * 100,
+                    "program_id": obj_coupon_id.id,
+                    "discount_mode": "percent"
+                    if tbcoupons.IsPercent
+                    else "per_order",
+                }
+                obj_coupon_reward_id = env["loyalty.reward"].create(
+                    value_reward
+                )
             lst_product = []
             for associate_item in lst_associate_item:
                 product_id = self.dct_k_tbstoreitems_v_product_template.get(
@@ -553,14 +556,15 @@ class Migration:
                 _logger.warning(msg)
                 self.lst_warning.append(msg)
 
-            value_rule = {
-                "active": tbcoupons.IsActive,
-                "program_id": obj_coupon_id.id,
-                "product_ids": lst_product,
-            }
-            if tbcoupons.MinimumAmount:
-                value_rule["minimum_amount"] = tbcoupons.MinimumAmount
-            obj_coupon_rule_id = env["loyalty.rule"].create(value_rule)
+            if lst_product or tbcoupons.MinimumAmount > 0.0:
+                value_rule = {
+                    "active": tbcoupons.IsActive,
+                    "program_id": obj_coupon_id.id,
+                    "product_ids": [(6, 0, lst_product)],
+                }
+                if tbcoupons.MinimumAmount:
+                    value_rule["minimum_amount"] = tbcoupons.MinimumAmount
+                obj_coupon_rule_id = env["loyalty.rule"].create(value_rule)
             # TODO tbStoreShoppingCartItemCoupons
 
     def migrate_tbExpenseCategories(self):
