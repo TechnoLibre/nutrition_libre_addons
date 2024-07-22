@@ -50,16 +50,9 @@ def post_init_hook(cr, e):
     # Migration method for each table
     migration.migrate_tbUsers()
 
-    # migration.migrate_tbAnimators()
     # migration.migrate_tbContents()
     # migration.migrate_tbCouponAllowedItems()
     # migration.migrate_tbExpenseCategories()
-    # migration.migrate_tbGalleryItems()
-    # migration.migrate_tbKnowledgeAnswerChoices()
-    # migration.migrate_tbKnowledgeAnswerResults()
-    # migration.migrate_tbKnowledgeQuestions()
-    # migration.migrate_tbKnowledgeTestResults()
-    # migration.migrate_tbKnowledgeTests()
     # migration.migrate_tbMailTemplates()
     migration.migrate_tbStoreCategories()
     migration.migrate_tbTrainingCourses()
@@ -94,7 +87,6 @@ def post_init_hook(cr, e):
         product_id,
     ) in migration.dct_k_tbstoreitems_v_product_template.items():
         migration.migrate_tbStoreItemPictures(item_id_i, product_id)
-    # migration.migrate_tbStoreItemTaxes()
     # migration.migrate_tbStoreItemTrainingCourses()
     # migration.migrate_tbStoreItemVariants()
     # migration.migrate_tbStoreShoppingCartItemCoupons()
@@ -147,6 +139,9 @@ def post_init_hook(cr, e):
     print(f"Migrate into {len(lst_model)} models.")
     for model in lst_model:
         print(f"{len(env[model].search([]))} {model}")
+    print("Statistic ignoring data migration")
+    for key, value in migration.dct_data_skip.items():
+        print(f"Table '{key}': {value}")
 
 
 class Struct(object):
@@ -193,6 +188,7 @@ class Migration:
         self.dct_k_tbstoreshoppingcarts_v_sale_order = {}
         self.dct_k_tbtrainingcourses_v_slide_channel = {}
         self.dct_tbusers = {}
+        self.dct_data_skip = defaultdict(int)
         # Model into cache
         self.dct_res_user_id = {}
         self.dct_partner_id = {}
@@ -361,44 +357,18 @@ class Migration:
             )
             self.purchase_tax_id = purchase_tax_id
             company.account_purchase_tax_id = purchase_tax_id.id
-
-    def migrate_tbAnimators(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbAnimators")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbanimators:
-            return
-        dct_tbanimators = {}
-        table_name = f"{self.db_name}.dbo.tbAnimators"
-        lst_tbl_tbanimators = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbanimators in enumerate(lst_tbl_tbanimators):
-            if DEBUG_LIMIT and i > LIMIT:
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbanimators)}"
-            # TODO update variable name from database table
-            obj_id_i = tbanimators.ID
-            # name = tbanimators.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbanimators[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbanimators = dct_tbanimators
+            # Configure journal for cash
+            journal_id = env["account.journal"].search(
+                domain=[("type", "=", "cash")],
+                limit=1,
+            )
+            # Configure
+            journal_id.inbound_payment_method_line_ids[
+                0
+            ].payment_account_id = journal_id.default_account_id.id
+            journal_id.outbound_payment_method_line_ids[
+                0
+            ].payment_account_id = journal_id.default_account_id.id
 
     def migrate_tbContents(self):
         """
@@ -415,6 +385,7 @@ class Migration:
 
         for i, tbcontents in enumerate(lst_tbl_tbcontents):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += len(lst_tbl_tbcontents) - i
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbcontents)}"
@@ -453,6 +424,9 @@ class Migration:
 
         for i, tbcouponalloweditems in enumerate(lst_tbl_tbcouponalloweditems):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbcouponalloweditems) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbcouponalloweditems)}"
@@ -495,6 +469,7 @@ class Migration:
 
         for i, tbcoupons in enumerate(lst_tbl_tbcoupons):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += len(lst_tbl_tbcoupons) - i
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbcoupons)}"
@@ -582,6 +557,9 @@ class Migration:
 
         for i, tbexpensecategories in enumerate(lst_tbl_tbexpensecategories):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbexpensecategories) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbexpensecategories)}"
@@ -605,244 +583,6 @@ class Migration:
 
         self.dct_tbexpensecategories = dct_tbexpensecategories
 
-    def migrate_tbGalleryItems(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbGalleryItems")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbgalleryitems:
-            return
-        dct_tbgalleryitems = {}
-        table_name = f"{self.db_name}.dbo.tbGalleryItems"
-        lst_tbl_tbgalleryitems = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbgalleryitems in enumerate(lst_tbl_tbgalleryitems):
-            if DEBUG_LIMIT and i > LIMIT:
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbgalleryitems)}"
-            # TODO update variable name from database table
-            obj_id_i = tbgalleryitems.ID
-            # name = tbgalleryitems.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbgalleryitems[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbgalleryitems = dct_tbgalleryitems
-
-    def migrate_tbKnowledgeAnswerChoices(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbKnowledgeAnswerChoices")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbknowledgeanswerchoices:
-            return
-        dct_tbknowledgeanswerchoices = {}
-        table_name = f"{self.db_name}.dbo.tbKnowledgeAnswerChoices"
-        lst_tbl_tbknowledgeanswerchoices = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbknowledgeanswerchoices in enumerate(
-            lst_tbl_tbknowledgeanswerchoices
-        ):
-            if DEBUG_LIMIT and i > LIMIT:
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbknowledgeanswerchoices)}"
-            # TODO update variable name from database table
-            obj_id_i = tbknowledgeanswerchoices.ID
-            # name = tbknowledgeanswerchoices.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbknowledgeanswerchoices[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbknowledgeanswerchoices = dct_tbknowledgeanswerchoices
-
-    def migrate_tbKnowledgeAnswerResults(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbKnowledgeAnswerResults")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_k_tbknowledgeanswerresults_v_survey_question_answer:
-            return
-        dct_tbknowledgeanswerresults = {}
-        table_name = f"{self.db_name}.dbo.tbKnowledgeAnswerResults"
-        lst_tbl_tbknowledgeanswerresults = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbknowledgeanswerresults in enumerate(
-            lst_tbl_tbknowledgeanswerresults
-        ):
-            if DEBUG_LIMIT and i > LIMIT:
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbknowledgeanswerresults)}"
-            # TODO update variable name from database table
-            obj_id_i = tbknowledgeanswerresults.ID
-            # name = tbknowledgeanswerresults.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbknowledgeanswerresults[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_k_tbknowledgeanswerresults_v_survey_question_answer = (
-            dct_tbknowledgeanswerresults
-        )
-
-    def migrate_tbKnowledgeQuestions(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbKnowledgeQuestions")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_k_tbknowledgequestions_v_survey_question:
-            return
-        dct_tbknowledgequestions = {}
-        table_name = f"{self.db_name}.dbo.tbKnowledgeQuestions"
-        lst_tbl_tbknowledgequestions = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbknowledgequestions in enumerate(lst_tbl_tbknowledgequestions):
-            if DEBUG_LIMIT and i > LIMIT:
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbknowledgequestions)}"
-            # TODO update variable name from database table
-            obj_id_i = tbknowledgequestions.ID
-            # name = tbknowledgequestions.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbknowledgequestions[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_k_tbknowledgequestions_v_survey_question = (
-            dct_tbknowledgequestions
-        )
-
-    def migrate_tbKnowledgeTestResults(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbKnowledgeTestResults")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbknowledgetestresults:
-            return
-        dct_tbknowledgetestresults = {}
-        table_name = f"{self.db_name}.dbo.tbKnowledgeTestResults"
-        lst_tbl_tbknowledgetestresults = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbknowledgetestresults in enumerate(
-            lst_tbl_tbknowledgetestresults
-        ):
-            if DEBUG_LIMIT and i > LIMIT:
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbknowledgetestresults)}"
-            # TODO update variable name from database table
-            obj_id_i = tbknowledgetestresults.ID
-            # name = tbknowledgetestresults.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbknowledgetestresults[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbknowledgetestresults = dct_tbknowledgetestresults
-
-    def migrate_tbKnowledgeTests(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbKnowledgeTests")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbknowledgetests:
-            return
-        dct_tbknowledgetests = {}
-        table_name = f"{self.db_name}.dbo.tbKnowledgeTests"
-        lst_tbl_tbknowledgetests = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbknowledgetests in enumerate(lst_tbl_tbknowledgetests):
-            if DEBUG_LIMIT and i > LIMIT:
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbknowledgetests)}"
-            # TODO update variable name from database table
-            obj_id_i = tbknowledgetests.ID
-            # name = tbknowledgetests.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbknowledgetests[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbknowledgetests = dct_tbknowledgetests
-
     def migrate_tbMailTemplates(self):
         """
         :return:
@@ -858,6 +598,9 @@ class Migration:
 
         for i, tbmailtemplates in enumerate(lst_tbl_tbmailtemplates):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbmailtemplates) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbmailtemplates)}"
@@ -895,6 +638,9 @@ class Migration:
 
         for i, tbstorecategories in enumerate(lst_tbl_tbstorecategories):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstorecategories) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstorecategories)}"
@@ -933,6 +679,9 @@ class Migration:
 
         for i, tbstoreitemanimators in enumerate(lst_tbl_tbstoreitemanimators):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreitemanimators) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemanimators)}"
@@ -975,6 +724,9 @@ class Migration:
             lst_tbl_tbstoreitemcontentpackagemappings
         ):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreitemcontentpackagemappings) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontentpackagemappings)}"
@@ -1019,6 +771,9 @@ class Migration:
             lst_tbl_tbstoreitemcontentpackages
         ):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreitemcontentpackages) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontentpackages)}"
@@ -1057,6 +812,9 @@ class Migration:
 
         for i, tbstoreitemcontents in enumerate(lst_tbl_tbstoreitemcontents):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreitemcontents) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontents)}"
@@ -1097,6 +855,9 @@ class Migration:
             lst_tbl_tbstoreitemcontenttypes
         ):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreitemcontenttypes) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontenttypes)}"
@@ -1139,6 +900,7 @@ class Migration:
 
         for i, tbstoreitems in enumerate(lst_tbl_tbstoreitems):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += len(lst_tbl_tbstoreitems) - i
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreitems)}"
@@ -1247,6 +1009,9 @@ class Migration:
             lst_tbl_tbstoreitempictures_filter
         ):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreitempictures_filter) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreitempictures_filter)}"
@@ -1269,44 +1034,6 @@ class Migration:
                     f" '{product_id.name}' id {obj_id_i}"
                 )
 
-    def migrate_tbStoreItemTaxes(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreItemTaxes")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreitemtaxes:
-            return
-        dct_tbstoreitemtaxes = {}
-        table_name = f"{self.db_name}.dbo.tbStoreItemTaxes"
-        lst_tbl_tbstoreitemtaxes = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbstoreitemtaxes in enumerate(lst_tbl_tbstoreitemtaxes):
-            if DEBUG_LIMIT and i > LIMIT:
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemtaxes)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreitemtaxes.ID
-            # name = tbstoreitemtaxes.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreitemtaxes[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreitemtaxes = dct_tbstoreitemtaxes
-
     def migrate_tbStoreItemTrainingCourses(self):
         """
         :return:
@@ -1324,6 +1051,9 @@ class Migration:
             lst_tbl_tbstoreitemtrainingcourses
         ):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreitemtrainingcourses) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemtrainingcourses)}"
@@ -1362,6 +1092,9 @@ class Migration:
 
         for i, tbstoreitemvariants in enumerate(lst_tbl_tbstoreitemvariants):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreitemvariants) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreitemvariants)}"
@@ -1401,6 +1134,9 @@ class Migration:
             lst_tbl_tbstoreshoppingcartitemcoupons
         ):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreshoppingcartitemcoupons) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitemcoupons)}"
@@ -1443,6 +1179,9 @@ class Migration:
             lst_tbl_tbstoreshoppingcartitems
         ):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreshoppingcartitems) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitems)}"
@@ -1483,6 +1222,9 @@ class Migration:
             lst_tbl_tbstoreshoppingcartitemtaxes
         ):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreshoppingcartitemtaxes) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitemtaxes)}"
@@ -1538,6 +1280,9 @@ class Migration:
 
         for i, tbstoreshoppingcarts in enumerate(lst_tbl_tbstoreshoppingcarts):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbstoreshoppingcarts) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcarts)}"
@@ -1546,9 +1291,6 @@ class Migration:
                 not tbstoreshoppingcarts.IsCompleted
                 and tbstoreshoppingcarts.ProviderStatusText != "completed"
             ):
-                continue
-            i += 1
-            if DEBUG_LIMIT and i > LIMIT:
                 continue
             order_partner_id = self.dct_partner_id.get(
                 tbstoreshoppingcarts.UserID
@@ -1628,6 +1370,7 @@ class Migration:
                             _logger.error(
                                 f"Cannot find product id {item.ItemID}"
                             )
+                            # self.dct_data_skip[lst_tbl_knowledge_answer_results] += 1
                             continue
                         name = "ticket"
 
@@ -1773,6 +1516,9 @@ class Migration:
 
         for i, tbtrainingcourses in enumerate(lst_tbl_tbtrainingcourses):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += (
+                    len(lst_tbl_tbtrainingcourses) - i
+                )
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbtrainingcourses)}"
@@ -1821,6 +1567,7 @@ class Migration:
             msg = f"About tbKnowledgeTests, missing TestID {test_id_tbl}"
             _logger.warning(msg)
             self.lst_warning.append(msg)
+            self.dct_data_skip[lbl_knowledge_test] += 1
             return False, False
         knowledge_test_tbl = lst_knowledge_test_tbl[0]
 
@@ -1836,6 +1583,7 @@ class Migration:
             msg = f"About tbKnowledgeQuestions, missing TestID {test_id_tbl}"
             _logger.warning(msg)
             self.lst_warning.append(msg)
+            self.dct_data_skip[lbl_knowledge_question] += 1
             return False, False
 
         # Survey.question.answer init
@@ -1891,6 +1639,7 @@ class Migration:
                 )
                 _logger.warning(msg)
                 self.lst_warning.append(msg)
+                self.dct_data_skip[lbl_knowledge_question_answer] += 1
                 continue
             # TODO AnswerEN
             for (
@@ -1957,8 +1706,11 @@ class Migration:
     def continue_migrate_tbTrainingCourses_knownledge_answer(self):
         env = api.Environment(self.cr, SUPERUSER_ID, {})
 
-        lst_tbl_knowledge_test_results = self.dct_tbl.get(
+        table_name_knowledge_test_results = (
             f"{self.db_name}.dbo.tbKnowledgeTestResults"
+        )
+        lst_tbl_knowledge_test_results = self.dct_tbl.get(
+            table_name_knowledge_test_results
         )
         # Import result survey
         for tbl_knowledge_test_results in lst_tbl_knowledge_test_results:
@@ -1972,6 +1724,7 @@ class Migration:
                 )
                 _logger.error(msg)
                 self.lst_error.append(msg)
+                self.dct_data_skip[table_name_knowledge_test_results] += 1
                 continue
 
             obj_survey = self.dct_k_knowledgetest_v_survey_id.get(
@@ -1984,6 +1737,7 @@ class Migration:
                 )
                 _logger.error(msg)
                 self.lst_error.append(msg)
+                self.dct_data_skip[table_name_knowledge_test_results] += 1
                 continue
             # DONE Ignore Grade, will be recalcul, validate the value is good by a warning
             # DONE validate IsSuccessful
@@ -2007,8 +1761,11 @@ class Migration:
             obj_survey_user_input = env["survey.user_input"].create(
                 value_survey_user_input
             )
-            lst_tbl_knowledge_answer_results = self.dct_tbl.get(
+            table_name_knowledge_answer_results = (
                 f"{self.db_name}.dbo.tbKnowledgeAnswerResults"
+            )
+            lst_tbl_knowledge_answer_results = self.dct_tbl.get(
+                table_name_knowledge_answer_results
             )
             # Get associate result line
             lst_associate_answer_result = [
@@ -2031,6 +1788,9 @@ class Migration:
                     )
                     _logger.error(msg)
                     self.lst_error.append(msg)
+                    self.dct_data_skip[
+                        table_name_knowledge_answer_results
+                    ] += 1
                     continue
                 value_survey_user_input_line = {
                     "user_input_id": obj_survey_user_input.id,
@@ -2125,12 +1885,14 @@ class Migration:
 
         for i, tbusers in enumerate(lst_tbl_tbusers):
             if DEBUG_LIMIT and i > LIMIT:
+                self.dct_data_skip[table_name] += len(lst_tbl_tbusers) - i
                 break
 
             pos_id = f"{i}/{len(lst_tbl_tbusers)}"
 
             # Ignore user
             if tbusers.UserID == 1231:
+                self.dct_data_skip[table_name] += 1
                 continue
 
             obj_id_i = tbusers.UserID
