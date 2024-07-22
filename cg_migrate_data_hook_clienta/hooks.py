@@ -1,6 +1,7 @@
 import base64
 import datetime
 import logging
+from collections import defaultdict
 
 from odoo import SUPERUSER_ID, _, api, fields, models
 from odoo.exceptions import ValidationError
@@ -53,7 +54,6 @@ def post_init_hook(cr, e):
     # migration.migrate_tbContents()
     # migration.migrate_tbCouponAllowedItems()
     # migration.migrate_tbExpenseCategories()
-    # migration.migrate_tbMailTemplates()
     migration.migrate_tbStoreCategories()
     migration.migrate_tbTrainingCourses()
     for (
@@ -582,47 +582,6 @@ class Migration:
                 )
 
         self.dct_tbexpensecategories = dct_tbexpensecategories
-
-    def migrate_tbMailTemplates(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbMailTemplates")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbmailtemplates:
-            return
-        dct_tbmailtemplates = {}
-        table_name = f"{self.db_name}.dbo.tbMailTemplates"
-        lst_tbl_tbmailtemplates = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbmailtemplates in enumerate(lst_tbl_tbmailtemplates):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbmailtemplates) - i
-                )
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbmailtemplates)}"
-            # TODO update variable name from database table
-            obj_id_i = tbmailtemplates.ID
-            # name = tbmailtemplates.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbmailtemplates[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbmailtemplates = dct_tbmailtemplates
 
     def migrate_tbStoreCategories(self):
         """
