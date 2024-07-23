@@ -27,15 +27,6 @@ MIGRATE_SALE = False
 MIGRATE_INVOICE = False
 MIGRATE_COUPON = False
 
-try:
-    import pymssql
-
-    assert pymssql
-except ImportError:
-    # raise ValidationError(
-    #     'pymssql is not available. Please install "pymssql" python package.'
-    # )
-    pass
 if not HOST or not USER or not PASSWD or not DB_NAME:
     raise ValidationError(
         f"Please, fill constant HOST/USER/PASSWD/DB_NAME into files {__file__}"
@@ -205,7 +196,7 @@ class Migration:
         self.sale_tax_TVQ_id = None
         self.purchase_tax_id = None
         # Database information
-        assert pymssql
+        import pymssql
         self.host = HOST
         self.user = USER
         self.port = PORT
