@@ -195,8 +195,7 @@ class Migration:
         self.dct_partner_id = {}
         self.dct_k_knowledgetest_v_survey_id = {}
         self.dct_k_survey_v_slide_survey_id = {}
-        self.dct_event = {}
-        self.dct_event_ticket = {}
+        self.dct_k_tbstoreitems_v_event_ticket = {}
         self.dct_k_tbstoreitems_v_product_template = {}
         self.dct_k_tbstoreitems_v_event_event = {}
         # local variable
@@ -365,6 +364,10 @@ class Migration:
             journal_id.outbound_payment_method_line_ids[
                 0
             ].payment_account_id = journal_id.default_account_id.id
+            # Configure tax event
+            env.ref("website_sale_slides.default_product_course").taxes_id = [
+                (6, 0, self.sale_tax_id.ids)
+            ]
 
     def migrate_tbContents(self):
         """
@@ -899,7 +902,6 @@ class Migration:
                 }
                 event_id = env[model_name].create(value_event)
                 self.dct_k_tbstoreitems_v_event_event[obj_id_i] = event_id
-                self.dct_event[obj_id_i] = event_id
                 price = tbstoreitems.ItemSellPrice
                 value_event_ticket = {
                     "name": tbstoreitems.ItemNameFR,
@@ -913,7 +915,9 @@ class Migration:
                 event_ticket_id = env["event.event.ticket"].create(
                     value_event_ticket
                 )
-                self.dct_event_ticket[obj_id_i] = event_ticket_id
+                self.dct_k_tbstoreitems_v_event_ticket[
+                    obj_id_i
+                ] = event_ticket_id
             else:
                 categorie_id = (
                     self.dct_k_tbstorecategories_v_product_category.get(
@@ -1094,12 +1098,7 @@ class Migration:
             # Check if exist before, do unique
             obj_id = env[model_name].search([("name", "=", name)])
             if not obj_id:
-                try:
-                    obj_id = env[model_name].create(value)
-                except Exception as e:
-                    print(e)
-            else:
-                print("ok")
+                obj_id = env[model_name].create(value)
 
             product_template_id = (
                 self.dct_k_tbstoreitems_v_product_template.get(
@@ -1373,10 +1372,18 @@ class Migration:
                             item.ItemID
                         )
                     )
+                    event_shopping_id = None
+                    event_registration_id = None
                     if not product_shopping_id:
-                        event_shopping_id = self.dct_event.get(item.ItemID)
-                        event_ticket_shopping_id = self.dct_event_ticket.get(
-                            item.ItemID
+                        event_shopping_id = (
+                            self.dct_k_tbstoreitems_v_event_event.get(
+                                item.ItemID
+                            )
+                        )
+                        event_ticket_shopping_id = (
+                            self.dct_k_tbstoreitems_v_event_ticket.get(
+                                item.ItemID
+                            )
                         )
                         product_shopping_id = env.ref(
                             "event_sale.product_product_event"
@@ -1412,9 +1419,16 @@ class Migration:
                         "product_id": product_shopping_id.id,
                         # "is_published": store_item.IsActive,
                     }
+                    if event_shopping_id:
+                        value_sale_order_line["event_id"] = event_shopping_id.id
+                        value_sale_order_line["event_ticket_id"] = event_ticket_shopping_id.id
+                        value_sale_order_line["name"] = f"Ticket {event_shopping_id.name}"
+                        # value_sale_order["tax_id"] = [(6, 0, self.sale_tax_id.ids)]
                     sale_order_line_id = env["sale.order.line"].create(
                         value_sale_order_line
                     )
+                    if event_registration_id:
+                        event_registration_id.sale_order_line_id = sale_order_line_id.id
             # Create invoice
             # Validate sale order
             # sale_order_id.action_confirm()
@@ -1441,6 +1455,7 @@ class Migration:
                                 "account_id": env.ref(
                                     "l10n_ca.ca_en_chart_template_en"
                                 ).id,
+                                "sale_line_ids": [(6, 0, line.ids)]
                                 # "tax_ids": False,
                             },
                         )
