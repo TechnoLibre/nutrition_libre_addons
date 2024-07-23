@@ -27,10 +27,18 @@ MIGRATE_SALE = False
 MIGRATE_INVOICE = False
 MIGRATE_COUPON = False
 
-if not HOST or not USER or not PASSWD or not DB_NAME:
-    raise ValidationError(
-        f"Please, fill constant HOST/USER/PASSWD/DB_NAME into files {__file__}"
-    )
+# try:
+#     import pymssql
+#
+#     assert pymssql
+# except ImportError:
+#     raise ValidationError(
+#         'pymssql is not available. Please install "pymssql" python package.'
+#     )
+# if not HOST or not USER or not PASSWD or not DB_NAME:
+#     raise ValidationError(
+#         f"Please, fill constant HOST/USER/PASSWD/DB_NAME into files {__file__}"
+#     )
 
 
 def post_init_hook(cr, e):
