@@ -1,5 +1,6 @@
 import base64
 import datetime
+
 # import locale
 import logging
 from collections import defaultdict
@@ -93,8 +94,8 @@ def post_init_hook(cr, e):
     # migration.migrate_tbStoreShoppingCartItemCoupons()
     # migration.migrate_tbStoreShoppingCartItems()
     # migration.migrate_tbStoreShoppingCartItemTaxes()
-    migration.migrate_tbStoreShoppingCarts()
     migration.migrate_tbCoupons()
+    migration.migrate_tbStoreShoppingCarts()
 
     # Print warning
     if migration.lst_warning:
@@ -203,8 +204,10 @@ class Migration:
         self.sale_tax_TPS_id = None
         self.sale_tax_TVQ_id = None
         self.purchase_tax_id = None
+        self.default_product_frais_id = None
         # Database information
         import pymssql
+
         self.host = HOST
         self.user = USER
         self.port = PORT
@@ -285,7 +288,8 @@ class Migration:
             tpl_result = cur.fetchall()
             lst_column_name = [a[0] for a in tpl_result]
             if table == "tbStoreShoppingCarts":
-                str_query = f"""SELECT * FROM {table_name} WHERE IsCompleted = 1 or ProviderStatusText = 'completed';"""
+                # str_query = f"""SELECT * FROM {table_name} WHERE IsCompleted = 1 or ProviderStatusText = 'completed';"""
+                str_query = f"""SELECT * FROM {table_name} WHERE ProviderStatusText = 'completed';"""
             else:
                 str_query = f"""SELECT * FROM {table_name};"""
             cur.nextset()
@@ -309,6 +313,7 @@ class Migration:
         # General configuration
         values = {
             # "group_product_variant": True,
+            "group_discount_per_so_line": True,
         }
         if not dry_run:
             event_config = env["res.config.settings"].sudo().create(values)
@@ -539,7 +544,6 @@ class Migration:
                 if tbcoupons.MinimumAmount:
                     value_rule["minimum_amount"] = tbcoupons.MinimumAmount
                 obj_coupon_rule_id = env["loyalty.rule"].create(value_rule)
-            # TODO tbStoreShoppingCartItemCoupons
 
     def migrate_tbExpenseCategories(self):
         """
@@ -855,6 +859,17 @@ class Migration:
             f"{self.db_name}.dbo.tbStoreItemTaxes"
         )
         model_name = "event.event"
+
+        value_product = {
+            "name": "Frais inconnu",
+            "list_price": 1,
+            "standard_price": 0,
+            "description_sale": "Frais non déterminé.",
+            "taxes_id": [(6, 0, self.sale_tax_id.ids)],
+        }
+        self.default_product_frais_id = env["product.template"].create(
+            value_product
+        )
 
         for i, tbstoreitems in enumerate(lst_tbl_tbstoreitems):
             if DEBUG_LIMIT and i > LIMIT:
@@ -1276,6 +1291,8 @@ class Migration:
             return
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCarts"
         lst_tbl_tbstoreshoppingcarts = self.dct_tbl.get(table_name)
+        table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItemCoupons"
+        lst_tbl_tbstoreshoppingcartitemcoupons = self.dct_tbl.get(table_name)
         lst_tbl_store_shopping_cart_item = self.dct_tbl.get(
             f"{self.db_name}.dbo.tbStoreShoppingCartItems"
         )
@@ -1292,7 +1309,9 @@ class Migration:
         )[0]
         model_name = "sale.order"
 
-        for i, tbstoreshoppingcarts in enumerate(lst_tbl_tbstoreshoppingcarts):
+        for i, tbstoreshoppingcarts in enumerate(
+            lst_tbl_tbstoreshoppingcarts[::-1]
+        ):
             if DEBUG_LIMIT and i > LIMIT:
                 self.dct_data_skip[table_name] += (
                     len(lst_tbl_tbstoreshoppingcarts) - i
@@ -1301,10 +1320,12 @@ class Migration:
 
             pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcarts)}"
             obj_id_i = tbstoreshoppingcarts.CartID
-            if (
-                not tbstoreshoppingcarts.IsCompleted
-                and tbstoreshoppingcarts.ProviderStatusText != "completed"
-            ):
+            # if (
+            #     not tbstoreshoppingcarts.IsCompleted
+            #     and tbstoreshoppingcarts.ProviderStatusText != "completed"
+            # ):
+            #     continue
+            if tbstoreshoppingcarts.ProviderStatusText != "completed":
                 continue
             order_partner_id = self.dct_partner_id.get(
                 tbstoreshoppingcarts.UserID
@@ -1317,6 +1338,10 @@ class Migration:
                 #     f" order {store_shopping_cart.CartID}"
                 # )
                 # continue
+            # TODO check store_shopping_cart.ProviderStatusText
+            # TODO check store_shopping_cart.ProviderTransactionID
+            # TODO check store_shopping_cart.TotalAmount
+            # TODO check store_shopping_cart.TotalDiscount
             value_sale_order = {
                 # "name": store_shopping_cart.ItemNameFR,
                 # "list_price": store_item.ItemSellPrice,
@@ -1337,13 +1362,14 @@ class Migration:
                 for a in lst_tbl_store_shopping_cart_item
                 if a.CartID == tbstoreshoppingcarts.CartID
             ]
+            perc_discount = 0.0
+            if tbstoreshoppingcarts.TotalDiscount:
+                perc_discount = tbstoreshoppingcarts.TotalDiscount / (
+                    tbstoreshoppingcarts.TotalDiscount
+                    + tbstoreshoppingcarts.TotalAmount
+                )
             if not lst_items:
                 # Create a new one
-                # TODO check store_shopping_cart.ProviderStatusText
-                # TODO check store_shopping_cart.ProviderTransactionID
-                # TODO check store_shopping_cart.TotalAmount
-                # TODO check store_shopping_cart.TotalDiscount
-
                 value_sale_order_line = {
                     "name": "Non défini",
                     # "list_price": store_item.ItemSellPrice,
@@ -1354,7 +1380,7 @@ class Migration:
                     "price_unit": tbstoreshoppingcarts.TotalAmount / 1.14975,
                     "product_qty": 1,
                     "display_type": False,
-                    "product_id": 1,
+                    "product_id": self.default_product_frais_id.id,
                     # "tax_ids":
                     # "is_published": store_item.IsActive,
                 }
@@ -1419,16 +1445,50 @@ class Migration:
                         "product_id": product_shopping_id.id,
                         # "is_published": store_item.IsActive,
                     }
+                    if perc_discount:
+                        value_sale_order_line["discount"] = (
+                            perc_discount * 100.0
+                        )
                     if event_shopping_id:
-                        value_sale_order_line["event_id"] = event_shopping_id.id
-                        value_sale_order_line["event_ticket_id"] = event_ticket_shopping_id.id
-                        value_sale_order_line["name"] = f"Ticket {event_shopping_id.name}"
+                        value_sale_order_line[
+                            "event_id"
+                        ] = event_shopping_id.id
+                        value_sale_order_line[
+                            "event_ticket_id"
+                        ] = event_ticket_shopping_id.id
+                        value_sale_order_line[
+                            "name"
+                        ] = f"Ticket {event_shopping_id.name}"
                         # value_sale_order["tax_id"] = [(6, 0, self.sale_tax_id.ids)]
                     sale_order_line_id = env["sale.order.line"].create(
                         value_sale_order_line
                     )
                     if event_registration_id:
-                        event_registration_id.sale_order_line_id = sale_order_line_id.id
+                        event_registration_id.sale_order_line_id = (
+                            sale_order_line_id.id
+                        )
+            # Validation amount is correct
+            if (
+                sale_order_id.amount_total - tbstoreshoppingcarts.TotalAmount
+                > 0.1
+            ):
+                _logger.error(
+                    "Problème de calcul pour shopping ID"
+                    f" {tbstoreshoppingcarts.CartID}, a"
+                    f" {tbstoreshoppingcarts.TotalAmount} et obtient"
+                    f" {sale_order_id.amount_total}. Discount attendu"
+                    f" {tbstoreshoppingcarts.TotalDiscount}"
+                )
+
+            # Associate coupon
+            # associate_coupon = [
+            #     a
+            #     for a in lst_tbl_tbstoreshoppingcartitemcoupons
+            #     if a.CartItemID == obj_id_i
+            # ]
+            # if associate_coupon:
+            #     sale_order_id
+            #     print("es")
             # Create invoice
             # Validate sale order
             # sale_order_id.action_confirm()
@@ -1451,7 +1511,8 @@ class Migration:
                                 "product_id": line.product_id.id,
                                 "name": line.name,
                                 "quantity": line.product_uom_qty,
-                                "price_unit": line.price_unit,
+                                "price_unit": line.price_unit
+                                - perc_discount * line.price_unit,
                                 "account_id": env.ref(
                                     "l10n_ca.ca_en_chart_template_en"
                                 ).id,
@@ -1490,6 +1551,7 @@ class Migration:
                         == default_account_client_recv_id
                     )
                     res = invoice_id.with_context(
+                        install_mode=True,
                         move_id=invoice_id.id,
                         line_id=payment_ml.id,
                         paid_amount=invoice_id.amount_total,
