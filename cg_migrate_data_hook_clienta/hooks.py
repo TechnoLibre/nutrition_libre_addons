@@ -27,6 +27,7 @@ DEFAULT_SELL_USER_ID = 2  # or 8
 MIGRATE_SALE = False
 MIGRATE_INVOICE = False
 MIGRATE_COUPON = False
+link_generic_video_demo = ""
 
 # try:
 #     import pymssql
@@ -57,11 +58,17 @@ def post_init_hook(cr, e):
     # migration.migrate_tbCouponAllowedItems()
     # migration.migrate_tbExpenseCategories()
     migration.migrate_tbStoreCategories()
+    migration.migrate_tbStoreItems()
+    for (
+        item_id_i,
+        product_id,
+    ) in migration.dct_k_tbstoreitems_v_product_template.items():
+        migration.migrate_tbStoreItemPictures(item_id_i, product_id)
     migration.migrate_tbTrainingCourses()
     for (
         obj_id_i,
         obj_slide_channel_id,
-    ) in migration.dct_k_tbtrainingcourses_v_slide_channel.items():
+    ) in migration.dct_k_tbtrainingcourses_id_test_v_slide_channel.items():
         (
             obj_survey_id,
             first_knowledge_test_id,
@@ -83,13 +90,7 @@ def post_init_hook(cr, e):
     # migration.migrate_tbStoreItemContentPackages()
     # migration.migrate_tbStoreItemContents()
     # migration.migrate_tbStoreItemContentTypes()
-    migration.migrate_tbStoreItems()
-    for (
-        item_id_i,
-        product_id,
-    ) in migration.dct_k_tbstoreitems_v_product_template.items():
-        migration.migrate_tbStoreItemPictures(item_id_i, product_id)
-    # migration.migrate_tbStoreItemTrainingCourses()
+
     # migration.migrate_tbStoreItemVariants()
     # migration.migrate_tbStoreShoppingCartItemCoupons()
     # migration.migrate_tbStoreShoppingCartItems()
@@ -188,6 +189,7 @@ class Migration:
         self.dct_tbstoreshoppingcartitems = {}
         self.dct_tbstoreshoppingcartitemtaxes = {}
         self.dct_k_tbstoreshoppingcarts_v_sale_order = {}
+        self.dct_k_tbtrainingcourses_id_test_v_slide_channel = {}
         self.dct_k_tbtrainingcourses_v_slide_channel = {}
         self.dct_tbusers = {}
         self.dct_data_skip = defaultdict(int)
@@ -196,9 +198,9 @@ class Migration:
         self.dct_partner_id = {}
         self.dct_k_knowledgetest_v_survey_id = {}
         self.dct_k_survey_v_slide_survey_id = {}
-        self.dct_k_tbstoreitems_v_event_ticket = {}
+        # self.dct_k_tbstoreitems_v_event_ticket = {}
         self.dct_k_tbstoreitems_v_product_template = {}
-        self.dct_k_tbstoreitems_v_event_event = {}
+        # self.dct_k_tbstoreitems_v_event_event = {}
         # local variable
         self.sale_tax_id = None
         self.sale_tax_TPS_id = None
@@ -858,7 +860,7 @@ class Migration:
         lst_tbl_tbstoreitemTaxes = self.dct_tbl.get(
             f"{self.db_name}.dbo.tbStoreItemTaxes"
         )
-        model_name = "event.event"
+        model_name = "product.template"
 
         value_product = {
             "name": "Frais inconnu",
@@ -885,98 +887,96 @@ class Migration:
             # ItemBuyCost
             # ItemDescriptionFR
             # ItemDescriptionExtentedFR
-            if tbstoreitems.CategoryID in (1, 2):
-                date_begin = tbstoreitems.DateCreated
-                # if "DATE" in tbstoreitems.ItemDescriptionExtendedFR:
-                #     pos_date = tbstoreitems.ItemDescriptionExtendedFR.index(
-                #         "DATE :"
-                #     )
-                #     pos_end_date = (
-                #         tbstoreitems.ItemDescriptionExtendedFR.index(
-                #             "<br", pos_date
-                #         )
-                #     )
-                #     extract_date = tbstoreitems.ItemDescriptionExtendedFR[
-                #         pos_date + 6 : pos_end_date
-                #     ].strip()
-                #     if extract_date:
-                #         locale.setlocale(locale.LC_ALL, "fr_CA")
-                #         date_begin = datetime.datetime.strptime(
-                #             extract_date, "%d %B %Y"
-                #         )
-                value_event = {
-                    "name": tbstoreitems.ItemNameFR,
-                    "user_id": default_user_seller_id.id,
-                    "organizer_id": default_seller_id.id,
-                    "create_date": tbstoreitems.DateCreated,
-                    "date_begin": date_begin,
-                    "date_end": date_begin,
-                    "date_tz": "America/Montreal",
-                    "is_published": tbstoreitems.IsOnHomePage,
-                    "active": tbstoreitems.IsActive,
-                }
-                event_id = env[model_name].create(value_event)
-                self.dct_k_tbstoreitems_v_event_event[obj_id_i] = event_id
-                price = tbstoreitems.ItemSellPrice
-                value_event_ticket = {
-                    "name": tbstoreitems.ItemNameFR,
-                    "event_id": event_id.id,
-                    "product_id": env.ref(
-                        "event_sale.product_product_event"
-                    ).id,
-                    "price": price,
-                    "create_date": tbstoreitems.DateCreated,
-                }
-                event_ticket_id = env["event.event.ticket"].create(
-                    value_event_ticket
-                )
-                self.dct_k_tbstoreitems_v_event_ticket[
-                    obj_id_i
-                ] = event_ticket_id
-            else:
-                categorie_id = (
-                    self.dct_k_tbstorecategories_v_product_category.get(
-                        tbstoreitems.CategoryID
-                    )
-                )
-                # Search taxes
-                taxes_item = [
-                    a.TaxID
-                    for a in lst_tbl_tbstoreitemTaxes
-                    if a.ItemID == obj_id_i
-                ]
-                taxes_item_ids = []
-                if 1 in taxes_item and 2 in taxes_item:
-                    taxes_item_ids = self.sale_tax_id.ids
-                elif 1 in taxes_item:
-                    taxes_item_ids = self.sale_tax_TPS_id.ids
-                elif 2 in taxes_item:
-                    taxes_item_ids = self.sale_tax_TVQ_id.ids
+            # if tbstoreitems.CategoryID in (1, 2):
+            #     date_begin = tbstoreitems.DateCreated
+            #     # if "DATE" in tbstoreitems.ItemDescriptionExtendedFR:
+            #     #     pos_date = tbstoreitems.ItemDescriptionExtendedFR.index(
+            #     #         "DATE :"
+            #     #     )
+            #     #     pos_end_date = (
+            #     #         tbstoreitems.ItemDescriptionExtendedFR.index(
+            #     #             "<br", pos_date
+            #     #         )
+            #     #     )
+            #     #     extract_date = tbstoreitems.ItemDescriptionExtendedFR[
+            #     #         pos_date + 6 : pos_end_date
+            #     #     ].strip()
+            #     #     if extract_date:
+            #     #         locale.setlocale(locale.LC_ALL, "fr_CA")
+            #     #         date_begin = datetime.datetime.strptime(
+            #     #             extract_date, "%d %B %Y"
+            #     #         )
+            #     value_event = {
+            #         "name": tbstoreitems.ItemNameFR,
+            #         "user_id": default_user_seller_id.id,
+            #         "organizer_id": default_seller_id.id,
+            #         "create_date": tbstoreitems.DateCreated,
+            #         "date_begin": date_begin,
+            #         "date_end": date_begin,
+            #         "date_tz": "America/Montreal",
+            #         "is_published": tbstoreitems.IsOnHomePage,
+            #         "active": tbstoreitems.IsActive,
+            #     }
+            #     event_id = env[model_name].create(value_event)
+            #     self.dct_k_tbstoreitems_v_event_event[obj_id_i] = event_id
+            #     price = tbstoreitems.ItemSellPrice
+            #     value_event_ticket = {
+            #         "name": tbstoreitems.ItemNameFR,
+            #         "event_id": event_id.id,
+            #         "product_id": env.ref(
+            #             "event_sale.product_product_event"
+            #         ).id,
+            #         "price": price,
+            #         "create_date": tbstoreitems.DateCreated,
+            #     }
+            #     event_ticket_id = env["event.event.ticket"].create(
+            #         value_event_ticket
+            #     )
+            #     self.dct_k_tbstoreitems_v_event_ticket[
+            #         obj_id_i
+            #     ] = event_ticket_id
+            # else:
+            categorie_id = self.dct_k_tbstorecategories_v_product_category.get(
+                tbstoreitems.CategoryID
+            )
+            # Search taxes
+            taxes_item = [
+                a.TaxID
+                for a in lst_tbl_tbstoreitemTaxes
+                if a.ItemID == obj_id_i
+            ]
+            taxes_item_ids = []
+            if 1 in taxes_item and 2 in taxes_item:
+                taxes_item_ids = self.sale_tax_id.ids
+            elif 1 in taxes_item:
+                taxes_item_ids = self.sale_tax_TPS_id.ids
+            elif 2 in taxes_item:
+                taxes_item_ids = self.sale_tax_TVQ_id.ids
 
-                website_description = f"""<section class="s_text_block pt40 pb40 o_colored_level" data-snippet="s_text_block" data-name="Texte" style="background-image: none;">
-    <div class="container s_allow_columns">
-        <p class="o_default_snippet_text">{tbstoreitems.ItemDescriptionExtendedFR}</p>
-    </div>
+            website_description = f"""<section class="s_text_block pt40 pb40 o_colored_level" data-snippet="s_text_block" data-name="Texte" style="background-image: none;">
+<div class="container s_allow_columns">
+    <p class="o_default_snippet_text">{tbstoreitems.ItemDescriptionExtendedFR}</p>
+</div>
 </section>"""
-                value_product = {
-                    "name": tbstoreitems.ItemNameFR,
-                    "list_price": tbstoreitems.ItemSellPrice,
-                    "standard_price": tbstoreitems.ItemBuyCost,
-                    "create_date": tbstoreitems.DateCreated,
-                    "categ_id": categorie_id.id,
-                    "is_published": tbstoreitems.IsOnHomePage,
-                    "active": tbstoreitems.IsActive,
-                    "description_sale": tbstoreitems.ItemDescriptionFR,
-                    "taxes_id": [(6, 0, taxes_item_ids)],
-                }
-                if tbstoreitems.ItemDescriptionExtendedFR:
-                    value_product["website_description"] = website_description
-                product_template_id = env["product.template"].create(
-                    value_product
-                )
-                self.dct_k_tbstoreitems_v_product_template[
-                    obj_id_i
-                ] = product_template_id
+            value_product = {
+                "name": tbstoreitems.ItemNameFR,
+                "list_price": tbstoreitems.ItemSellPrice,
+                "standard_price": tbstoreitems.ItemBuyCost,
+                "create_date": tbstoreitems.DateCreated,
+                "categ_id": categorie_id.id,
+                "is_published": tbstoreitems.IsOnHomePage,
+                "active": tbstoreitems.IsActive,
+                "description_sale": tbstoreitems.ItemDescriptionFR,
+                "taxes_id": [(6, 0, taxes_item_ids)],
+            }
+            if tbstoreitems.CategoryID in (1, 2):
+                value_product["detailed_type"] = "course"
+            if tbstoreitems.ItemDescriptionExtendedFR:
+                value_product["website_description"] = website_description
+            product_template_id = env[model_name].create(value_product)
+            self.dct_k_tbstoreitems_v_product_template[
+                obj_id_i
+            ] = product_template_id
 
             if DEBUG_OUTPUT:
                 _logger.info(
@@ -1026,49 +1026,6 @@ class Migration:
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
                     f" '{product_id.name}' id {obj_id_i}"
                 )
-
-    def migrate_tbStoreItemTrainingCourses(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreItemTrainingCourses")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreitemtrainingcourses:
-            return
-        dct_tbstoreitemtrainingcourses = {}
-        table_name = f"{self.db_name}.dbo.tbStoreItemTrainingCourses"
-        lst_tbl_tbstoreitemtrainingcourses = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbstoreitemtrainingcourses in enumerate(
-            lst_tbl_tbstoreitemtrainingcourses
-        ):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbstoreitemtrainingcourses) - i
-                )
-                break
-
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemtrainingcourses)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreitemtrainingcourses.ID
-            # name = tbstoreitemtrainingcourses.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreitemtrainingcourses[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreitemtrainingcourses = dct_tbstoreitemtrainingcourses
 
     def migrate_tbStoreItemVariants(self):
         """
@@ -1398,39 +1355,40 @@ class Migration:
                             item.ItemID
                         )
                     )
-                    event_shopping_id = None
-                    event_registration_id = None
+                    # event_shopping_id = None
+                    # event_registration_id = None
                     if not product_shopping_id:
-                        event_shopping_id = (
-                            self.dct_k_tbstoreitems_v_event_event.get(
-                                item.ItemID
-                            )
-                        )
-                        event_ticket_shopping_id = (
-                            self.dct_k_tbstoreitems_v_event_ticket.get(
-                                item.ItemID
-                            )
-                        )
-                        product_shopping_id = env.ref(
-                            "event_sale.product_product_event"
-                        )
-                        if not event_shopping_id:
-                            _logger.error(
-                                f"Cannot find product id {item.ItemID}"
-                            )
-                            # self.dct_data_skip[lst_tbl_knowledge_answer_results] += 1
-                            continue
-                        name = "ticket"
-
-                        value_event_registration = {
-                            "event_id": event_shopping_id.id,
-                            "event_ticket_id": event_ticket_shopping_id.id,
-                            "partner_id": order_partner_id.id,
-                        }
-                        # TODO state change open to done when event is done
-                        event_registration_id = env[
-                            "event.registration"
-                        ].create(value_event_registration)
+                        # event_shopping_id = (
+                        #     self.dct_k_tbstoreitems_v_event_event.get(
+                        #         item.ItemID
+                        #     )
+                        # )
+                        # event_ticket_shopping_id = (
+                        #     self.dct_k_tbstoreitems_v_event_ticket.get(
+                        #         item.ItemID
+                        #     )
+                        # )
+                        # product_shopping_id = env.ref(
+                        #     "event_sale.product_product_event"
+                        # )
+                        # if not event_shopping_id:
+                        #     _logger.error(
+                        #         f"Cannot find product id {item.ItemID}"
+                        #     )
+                        #     # self.dct_data_skip[lst_tbl_knowledge_answer_results] += 1
+                        #     continue
+                        # name = "ticket"
+                        #
+                        # value_event_registration = {
+                        #     "event_id": event_shopping_id.id,
+                        #     "event_ticket_id": event_ticket_shopping_id.id,
+                        #     "partner_id": order_partner_id.id,
+                        # }
+                        # # TODO state change open to done when event is done
+                        # event_registration_id = env[
+                        #     "event.registration"
+                        # ].create(value_event_registration)
+                        raise Exception("error event disable")
                     else:
                         name = product_shopping_id.name
                     value_sale_order_line = {
@@ -1449,24 +1407,24 @@ class Migration:
                         value_sale_order_line["discount"] = (
                             perc_discount * 100.0
                         )
-                    if event_shopping_id:
-                        value_sale_order_line[
-                            "event_id"
-                        ] = event_shopping_id.id
-                        value_sale_order_line[
-                            "event_ticket_id"
-                        ] = event_ticket_shopping_id.id
-                        value_sale_order_line[
-                            "name"
-                        ] = f"Ticket {event_shopping_id.name}"
-                        # value_sale_order["tax_id"] = [(6, 0, self.sale_tax_id.ids)]
+                    # if event_shopping_id:
+                    #     value_sale_order_line[
+                    #         "event_id"
+                    #     ] = event_shopping_id.id
+                    #     value_sale_order_line[
+                    #         "event_ticket_id"
+                    #     ] = event_ticket_shopping_id.id
+                    #     value_sale_order_line[
+                    #         "name"
+                    #     ] = f"Ticket {event_shopping_id.name}"
+                    # value_sale_order["tax_id"] = [(6, 0, self.sale_tax_id.ids)]
                     sale_order_line_id = env["sale.order.line"].create(
                         value_sale_order_line
                     )
-                    if event_registration_id:
-                        event_registration_id.sale_order_line_id = (
-                            sale_order_line_id.id
-                        )
+                    # if event_registration_id:
+                    #     event_registration_id.sale_order_line_id = (
+                    #         sale_order_line_id.id
+                    #     )
             # Validation amount is correct
             if (
                 sale_order_id.amount_total - tbstoreshoppingcarts.TotalAmount
@@ -1593,10 +1551,13 @@ class Migration:
         """
         _logger.info("Migrate tbTrainingCourses")
         env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_k_tbtrainingcourses_v_slide_channel:
+        if self.dct_k_tbtrainingcourses_id_test_v_slide_channel:
             return
         table_name = f"{self.db_name}.dbo.tbTrainingCourses"
         lst_tbl_tbtrainingcourses = self.dct_tbl.get(table_name)
+        lst_tbl_tbStoreItemTrainingCourses = self.dct_tbl.get(
+            f"{self.db_name}.dbo.tbStoreItemTrainingCourses"
+        )
         model_name = "slide.channel"
 
         default_seller_id = self.dct_partner_id[DEFAULT_SELL_USER_ID]
@@ -1617,9 +1578,8 @@ class Migration:
 
             # Slide Channel
             # TODO Duration -> create a statistics, check _compute_slides_statistics
-            # Ignore CourseID
             # TODO ReleaseDate
-            obj_id_i = tbtrainingcourses.TestID
+            obj_id_i = tbtrainingcourses.CourseID
             name = tbtrainingcourses.CourseName
 
             value = {
@@ -1633,8 +1593,22 @@ class Migration:
                 "user_id": default_user_seller_id.id,
             }
 
+            product_course_id = [
+                a
+                for a in lst_tbl_tbStoreItemTrainingCourses
+                if a.CourseID == obj_id_i
+            ]
+            if product_course_id:
+                item_id = self.dct_k_tbstoreitems_v_product_template.get(
+                    product_course_id[0].ItemID
+                )
+                if item_id:
+                    value["product_id"] = item_id.id
             obj_slide_channel_id = env[model_name].create(value)
 
+            self.dct_k_tbtrainingcourses_id_test_v_slide_channel[
+                tbtrainingcourses.TestID
+            ] = obj_slide_channel_id
             self.dct_k_tbtrainingcourses_v_slide_channel[
                 obj_id_i
             ] = obj_slide_channel_id
@@ -1774,20 +1748,38 @@ class Migration:
         )
         time_duration_hour = hours
 
+        if link_generic_video_demo:
+            value_slide = {
+                "name": f"Vidéo : {knowledge_test_tbl.TestName}",
+                "channel_id": obj_slide_channel_id.id,
+                "slide_category": "video",
+                "document_type": "url",
+                "video_url": link_generic_video_demo,
+                # "description": knowledge_test_tbl.CertificateBodyFR,
+                "survey_id": obj_survey.id,
+                "is_published": True,
+                "website_published": True,
+                "completion_time": time_duration_hour,
+                "create_date": knowledge_test_tbl.DateCreated,
+                "user_id": default_user_seller_id.id,
+            }
+            obj_slide = env["slide.slide"].create(value_slide)
+            # Bug, auto switch
+            obj_slide.slide_category = "video"
         # TODO Subject
         # TODO TestKey ??
         # TODO Trainer - abandon, do it manually
         # is compute later PassingGrade
         value_slide = {
-            "name": knowledge_test_tbl.TestName,
+            "name": f"Certification : {knowledge_test_tbl.TestName}",
             "channel_id": obj_slide_channel_id.id,
             "slide_category": "certification",
             "slide_type": "certification",
-            "description": knowledge_test_tbl.CertificateBodyFR,
+            # "description": knowledge_test_tbl.CertificateBodyFR,
             "survey_id": obj_survey.id,
             "is_published": True,
             "website_published": True,
-            "completion_time": time_duration_hour,
+            "completion_time": 0.25,
             "create_date": knowledge_test_tbl.DateCreated,
             "user_id": default_user_seller_id.id,
         }
