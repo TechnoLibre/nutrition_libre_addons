@@ -1307,7 +1307,7 @@ class Migration:
                 "create_date": tbstoreshoppingcarts.DateCreated,
                 "partner_id": order_partner_id.id,
                 # "is_published": store_item.IsActive,
-                "state": "done",
+                "state": "sale",
             }
             sale_order_id = env[model_name].create(value_sale_order)
             # move.action_post()
@@ -1322,7 +1322,10 @@ class Migration:
             # Migration message
             comment_message = (
                 "Transaction"
-                f" #{tbstoreshoppingcarts.ProviderTransactionID} {tbstoreshoppingcarts.ProviderStatusText}"
+                f" #{tbstoreshoppingcarts.ProviderTransactionID} {tbstoreshoppingcarts.ProviderStatusText}<br/>Date"
+                f" {tbstoreshoppingcarts.DateCreated}<br />Total amount"
+                f" {tbstoreshoppingcarts.TotalAmount}. Total discount"
+                f" {tbstoreshoppingcarts.TotalDiscount}"
             )
             comment_value = {
                 "subject": (
@@ -1358,7 +1361,8 @@ class Migration:
                 )
                 _logger.error(
                     "Need more information, missing charts items for chart"
-                    f" {tbstoreshoppingcarts.CartID}"
+                    f" {tbstoreshoppingcarts.CartID}. Date"
+                    f" {tbstoreshoppingcarts.DateCreated}"
                 )
             else:
                 for item in lst_items:
@@ -1415,7 +1419,10 @@ class Migration:
                         "product_id": product_shopping_id.id,
                         # "is_published": store_item.IsActive,
                     }
-                    if item.ItemCalculatedSellPrice != item.ItemSellPrice:
+                    if (
+                        item.ItemCalculatedSellPrice != item.ItemSellPrice
+                        and item.ItemCalculatedSellPrice is not None
+                    ):
                         if USE_DISCOUNT_PERC:
                             value_sale_order_line["discount"] = (
                                 (
@@ -1430,6 +1437,14 @@ class Migration:
                                 item.ItemSellPrice
                                 - item.ItemCalculatedSellPrice
                             )
+                    if item.ItemCalculatedSellPrice is None:
+                        msg = (
+                            f"Cart {tbstoreshoppingcarts.CartID} for item id"
+                            f" {item.ItemID}, calculated value is None. Date"
+                            f" {tbstoreshoppingcarts.DateCreated}"
+                        )
+                        _logger.warning(msg)
+                        self.lst_warning.append(msg)
                     # if event_shopping_id:
                     #     value_sale_order_line[
                     #         "event_id"
@@ -1453,13 +1468,20 @@ class Migration:
                 sale_order_id.amount_total - tbstoreshoppingcarts.TotalAmount
                 > 0.1
             ):
-                _logger.error(
-                    "Problème de calcul pour shopping ID"
-                    f" {tbstoreshoppingcarts.CartID}, a"
-                    f" {tbstoreshoppingcarts.TotalAmount} et obtient"
-                    f" {sale_order_id.amount_total}. Discount attendu"
+                diff = (
+                    sale_order_id.amount_total
+                    - tbstoreshoppingcarts.TotalAmount
+                )
+                msg = (
+                    f"Problème de calcul de {diff} pour shopping ID"
+                    f" {tbstoreshoppingcarts.CartID}. Total calculé"
+                    f" {sale_order_id.amount_total} est différent. Date"
+                    f" {tbstoreshoppingcarts.DateCreated}. Total amount"
+                    f" {tbstoreshoppingcarts.TotalAmount}. Total discount"
                     f" {tbstoreshoppingcarts.TotalDiscount}"
                 )
+                _logger.error(msg)
+                self.lst_error.append(msg)
 
             # Associate coupon
             # associate_coupon = [
@@ -1517,7 +1539,10 @@ class Migration:
                 # Migration message
                 comment_message = (
                     "Transaction"
-                    f" #{tbstoreshoppingcarts.ProviderTransactionID} {tbstoreshoppingcarts.ProviderStatusText}"
+                    f" #{tbstoreshoppingcarts.ProviderTransactionID} {tbstoreshoppingcarts.ProviderStatusText}<br/>Date"
+                    f" {tbstoreshoppingcarts.DateCreated}<br/>Total amount"
+                    f" {tbstoreshoppingcarts.TotalAmount}. Total discount"
+                    f" {tbstoreshoppingcarts.TotalDiscount}"
                 )
                 comment_value = {
                     "subject": (
@@ -1566,9 +1591,12 @@ class Migration:
                         paid_amount=invoice_id.amount_total,
                     ).js_assign_outstanding_line(payment_ml.id)
                     if not payment_ml.reconciled:
-                        _logger.warning(
-                            f"Facture non payé id %s" % invoice_id.id
+                        msg = (
+                            f"Facture non payé id {invoice_id.id}. Date"
+                            f" {tbstoreshoppingcarts.DateCreated}"
                         )
+                        _logger.warning(msg)
+                        self.lst_warning.append(msg)
                     # partials = res.get("partials")
                     # if partials:
                     #     print(partials)
@@ -1593,7 +1621,8 @@ class Migration:
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
+                    f" '{name}' id {obj_id_i}. Date"
+                    f" {tbstoreshoppingcarts.DateCreated}"
                 )
 
     def migrate_tbTrainingCourses(self):
@@ -1814,7 +1843,11 @@ class Migration:
                 "create_date": knowledge_test_tbl.DateCreated,
                 "user_id": default_user_seller_id.id,
             }
-            obj_slide = env["slide.slide"].create(value_slide)
+            obj_slide = (
+                env["slide.slide"]
+                .with_context(website_slides_skip_fetch_metadata=True)
+                .create(value_slide)
+            )
             # Bug, auto switch
             obj_slide.slide_category = "video"
         # TODO Subject
