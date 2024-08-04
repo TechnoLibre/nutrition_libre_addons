@@ -20,6 +20,7 @@ Migrate sqlserver for ClientA
         "loyalty",
         "partner_contact_gender",
         "partner_contact_birthdate",
+        "sale_fixed_discount",
     ],
     "external_dependencies": {
         "python": [

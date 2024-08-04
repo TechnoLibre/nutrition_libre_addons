@@ -28,6 +28,7 @@ MIGRATE_SALE = False
 MIGRATE_INVOICE = False
 MIGRATE_COUPON = False
 link_generic_video_demo = ""
+USE_DISCOUNT_PERC = False
 
 # try:
 #     import pymssql
@@ -291,7 +292,7 @@ class Migration:
             lst_column_name = [a[0] for a in tpl_result]
             if table == "tbStoreShoppingCarts":
                 # str_query = f"""SELECT * FROM {table_name} WHERE IsCompleted = 1 or ProviderStatusText = 'completed';"""
-                str_query = f"""SELECT * FROM {table_name} WHERE ProviderStatusText = 'completed';"""
+                str_query = f"""SELECT * FROM {table_name} WHERE ProviderStatusText = 'completed' ORDER BY CartID;"""
             else:
                 str_query = f"""SELECT * FROM {table_name};"""
             cur.nextset()
@@ -394,7 +395,7 @@ class Migration:
                 self.dct_data_skip[table_name] += len(lst_tbl_tbcontents) - i
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbcontents)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbcontents)}"
             # TODO update variable name from database table
             obj_id_i = tbcontents.ID
             # name = tbcontents.Name
@@ -435,7 +436,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbcouponalloweditems)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbcouponalloweditems)}"
             # TODO update variable name from database table
             obj_id_i = tbcouponalloweditems.ID
             # name = tbcouponalloweditems.Name
@@ -478,7 +479,7 @@ class Migration:
                 self.dct_data_skip[table_name] += len(lst_tbl_tbcoupons) - i
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbcoupons)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbcoupons)}"
             obj_id_i = tbcoupons.CouponID
             name = tbcoupons.CouponCode
 
@@ -567,7 +568,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbexpensecategories)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbexpensecategories)}"
             # TODO update variable name from database table
             obj_id_i = tbexpensecategories.ID
             # name = tbexpensecategories.Name
@@ -607,7 +608,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstorecategories)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstorecategories)}"
 
             # TODO AffiliateLinks
             obj_id_i = tbstorecategories.CategoryID
@@ -648,7 +649,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemanimators)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemanimators)}"
             # TODO update variable name from database table
             obj_id_i = tbstoreitemanimators.ID
             # name = tbstoreitemanimators.Name
@@ -693,7 +694,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontentpackagemappings)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemcontentpackagemappings)}"
             # TODO update variable name from database table
             obj_id_i = tbstoreitemcontentpackagemappings.ID
             # name = tbstoreitemcontentpackagemappings.Name
@@ -740,7 +741,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontentpackages)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemcontentpackages)}"
             # TODO update variable name from database table
             obj_id_i = tbstoreitemcontentpackages.ID
             # name = tbstoreitemcontentpackages.Name
@@ -781,7 +782,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontents)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemcontents)}"
             # TODO update variable name from database table
             obj_id_i = tbstoreitemcontents.ID
             # name = tbstoreitemcontents.Name
@@ -824,7 +825,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemcontenttypes)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemcontenttypes)}"
             # TODO update variable name from database table
             obj_id_i = tbstoreitemcontenttypes.ID
             # name = tbstoreitemcontenttypes.Name
@@ -878,7 +879,7 @@ class Migration:
                 self.dct_data_skip[table_name] += len(lst_tbl_tbstoreitems) - i
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitems)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitems)}"
             obj_id_i = tbstoreitems.ItemID
             # ? ItemOrder
             # ? ItemShippingFee
@@ -1007,7 +1008,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitempictures_filter)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitempictures_filter)}"
             b64_image = base64.b64encode(tbstoreitempictures.Image)
             if i == 0:
                 product_id.image_1920 = b64_image
@@ -1054,7 +1055,7 @@ class Migration:
 
             # TODO not finish to implement, no need it
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreitemvariants)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemvariants)}"
             # ItemID
             # VariantID
             # VariantOrder - sequence
@@ -1125,7 +1126,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitemcoupons)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreshoppingcartitemcoupons)}"
             # TODO update variable name from database table
             obj_id_i = tbstoreshoppingcartitemcoupons.ID
             # name = tbstoreshoppingcartitemcoupons.Name
@@ -1170,7 +1171,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitems)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreshoppingcartitems)}"
             # TODO update variable name from database table
             obj_id_i = tbstoreshoppingcartitems.ID
             # name = tbstoreshoppingcartitems.Name
@@ -1213,7 +1214,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcartitemtaxes)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreshoppingcartitemtaxes)}"
             # TODO update variable name from database table
             obj_id_i = tbstoreshoppingcartitemtaxes.ID
             # name = tbstoreshoppingcartitemtaxes.Name
@@ -1266,16 +1267,14 @@ class Migration:
         )[0]
         model_name = "sale.order"
 
-        for i, tbstoreshoppingcarts in enumerate(
-            lst_tbl_tbstoreshoppingcarts[::-1]
-        ):
+        for i, tbstoreshoppingcarts in enumerate(lst_tbl_tbstoreshoppingcarts):
             if DEBUG_LIMIT and i > LIMIT:
                 self.dct_data_skip[table_name] += (
                     len(lst_tbl_tbstoreshoppingcarts) - i
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbstoreshoppingcarts)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbstoreshoppingcarts)}"
             obj_id_i = tbstoreshoppingcarts.CartID
             # if (
             #     not tbstoreshoppingcarts.IsCompleted
@@ -1299,6 +1298,7 @@ class Migration:
             # TODO check store_shopping_cart.ProviderTransactionID
             # TODO check store_shopping_cart.TotalAmount
             # TODO check store_shopping_cart.TotalDiscount
+            # TODO check store_shopping_cart.DatePaid
             value_sale_order = {
                 # "name": store_shopping_cart.ItemNameFR,
                 # "list_price": store_item.ItemSellPrice,
@@ -1319,12 +1319,24 @@ class Migration:
                 for a in lst_tbl_store_shopping_cart_item
                 if a.CartID == tbstoreshoppingcarts.CartID
             ]
-            perc_discount = 0.0
-            if tbstoreshoppingcarts.TotalDiscount:
-                perc_discount = tbstoreshoppingcarts.TotalDiscount / (
-                    tbstoreshoppingcarts.TotalDiscount
-                    + tbstoreshoppingcarts.TotalAmount
-                )
+            # Migration message
+            comment_message = (
+                "Transaction"
+                f" #{tbstoreshoppingcarts.ProviderTransactionID} {tbstoreshoppingcarts.ProviderStatusText}"
+            )
+            comment_value = {
+                "subject": (
+                    "Note de migration - Plateforme ASP.net avant migration -"
+                    f" Commande No. {tbstoreshoppingcarts.CartID}"
+                ),
+                "body": f"<p>{comment_message}</p>",
+                "parent_id": False,
+                "message_type": "comment",
+                "author_id": SUPERUSER_ID,
+                "model": "sale.order",
+                "res_id": sale_order_id.id,
+            }
+            env["mail.message"].create(comment_value)
             if not lst_items:
                 # Create a new one
                 value_sale_order_line = {
@@ -1398,15 +1410,26 @@ class Migration:
                         "create_date": tbstoreshoppingcarts.DateCreated,
                         "order_partner_id": order_partner_id.id,
                         "order_id": sale_order_id.id,
-                        "price_unit": item.ItemSellPrice / 1.14975,
+                        "price_unit": item.ItemSellPrice,
                         "product_qty": item.Quantity,
                         "product_id": product_shopping_id.id,
                         # "is_published": store_item.IsActive,
                     }
-                    if perc_discount:
-                        value_sale_order_line["discount"] = (
-                            perc_discount * 100.0
-                        )
+                    if item.ItemCalculatedSellPrice != item.ItemSellPrice:
+                        if USE_DISCOUNT_PERC:
+                            value_sale_order_line["discount"] = (
+                                (
+                                    item.ItemSellPrice
+                                    - item.ItemCalculatedSellPrice
+                                )
+                                / item.ItemSellPrice
+                                * 100.0
+                            )
+                        else:
+                            value_sale_order_line["discount_fixed"] = (
+                                item.ItemSellPrice
+                                - item.ItemCalculatedSellPrice
+                            )
                     # if event_shopping_id:
                     #     value_sale_order_line[
                     #         "event_id"
@@ -1451,6 +1474,31 @@ class Migration:
             # Validate sale order
             # sale_order_id.action_confirm()
             if MIGRATE_INVOICE:
+                invoice_line = []
+                for line in sale_order_id.order_line:
+                    value_line = {
+                        "product_id": line.product_id.id,
+                        "name": line.name,
+                        "quantity": line.product_uom_qty,
+                        # "price_unit": line.price_unit,
+                        "price_unit": line.price_subtotal,
+                        "account_id": env.ref(
+                            "l10n_ca.ca_en_chart_template_en"
+                        ).id,
+                        "sale_line_ids": [(6, 0, line.ids)]
+                        # "tax_ids": False,
+                    }
+                    # if USE_DISCOUNT_PERC:
+                    #     value_line["discount"] = line.discount
+                    # else:
+                    #     value_line["discount_fixed"] = line.discount_fixed
+                    invoice_line.append(
+                        (
+                            0,
+                            0,
+                            value_line,
+                        )
+                    )
                 # Create Invoice
                 invoice_vals = {
                     "move_type": "out_invoice",  # for customer invoice
@@ -1461,28 +1509,31 @@ class Migration:
                     "invoice_origin": sale_order_id.name,
                     "currency_id": env.company.currency_id.id,
                     "company_id": env.company.id,
-                    "invoice_line_ids": [
-                        (
-                            0,
-                            0,
-                            {
-                                "product_id": line.product_id.id,
-                                "name": line.name,
-                                "quantity": line.product_uom_qty,
-                                "price_unit": line.price_unit
-                                - perc_discount * line.price_unit,
-                                "account_id": env.ref(
-                                    "l10n_ca.ca_en_chart_template_en"
-                                ).id,
-                                "sale_line_ids": [(6, 0, line.ids)]
-                                # "tax_ids": False,
-                            },
-                        )
-                        for line in sale_order_id.order_line
-                    ],
+                    "invoice_line_ids": invoice_line,
                 }
 
                 invoice_id = env["account.move"].create(invoice_vals)
+
+                # Migration message
+                comment_message = (
+                    "Transaction"
+                    f" #{tbstoreshoppingcarts.ProviderTransactionID} {tbstoreshoppingcarts.ProviderStatusText}"
+                )
+                comment_value = {
+                    "subject": (
+                        "Note de migration - Plateforme ASP.net avant"
+                        " migration - Commande No."
+                        f" {tbstoreshoppingcarts.CartID}"
+                    ),
+                    "body": f"<p>{comment_message}</p>",
+                    "parent_id": False,
+                    "message_type": "comment",
+                    "author_id": SUPERUSER_ID,
+                    "model": "account.move",
+                    "res_id": invoice_id.id,
+                }
+                env["mail.message"].create(comment_value)
+
                 invoice_id.action_post()
 
                 # Validate Invoice (optional)
@@ -1574,7 +1625,7 @@ class Migration:
                 )
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbtrainingcourses)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbtrainingcourses)}"
 
             # Slide Channel
             # TODO Duration -> create a statistics, check _compute_slides_statistics
@@ -1972,7 +2023,7 @@ class Migration:
                 self.dct_data_skip[table_name] += len(lst_tbl_tbusers) - i
                 break
 
-            pos_id = f"{i}/{len(lst_tbl_tbusers)}"
+            pos_id = f"{i+1}/{len(lst_tbl_tbusers)}"
 
             # Ignore user
             if tbusers.UserID == 1231:
