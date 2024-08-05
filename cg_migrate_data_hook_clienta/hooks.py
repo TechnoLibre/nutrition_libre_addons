@@ -74,7 +74,6 @@ def post_init_hook(cr, e):
             obj_survey_id,
             first_knowledge_test_id,
         ) = migration.continue_migrate_tbTrainingCourses_knowledge_question(
-            obj_slide_channel_id,
             obj_id_i,
         )
         if obj_survey_id is False or first_knowledge_test_id is False:
@@ -1010,7 +1009,8 @@ class Migration:
 
             pos_id = f"{i+1}/{len(lst_tbl_tbstoreitempictures_filter)}"
             b64_image = base64.b64encode(tbstoreitempictures.Image)
-            if i == 0:
+            if i == len(lst_tbl_tbstoreitempictures_filter) - 1:
+                # Force take last image
                 product_id.image_1920 = b64_image
             value_image = {
                 "name": f"{product_id.name}_{i}",
@@ -1473,12 +1473,12 @@ class Migration:
                     - tbstoreshoppingcarts.TotalAmount
                 )
                 msg = (
-                    f"Problème de calcul de {diff} pour shopping ID"
+                    f"Problème de calcul de {diff}$ pour shopping ID"
                     f" {tbstoreshoppingcarts.CartID}. Total calculé"
-                    f" {sale_order_id.amount_total} est différent. Date"
+                    f" {sale_order_id.amount_total}$ est différent. Date"
                     f" {tbstoreshoppingcarts.DateCreated}. Total amount"
-                    f" {tbstoreshoppingcarts.TotalAmount}. Total discount"
-                    f" {tbstoreshoppingcarts.TotalDiscount}"
+                    f" {tbstoreshoppingcarts.TotalAmount}$. Total discount"
+                    f" {tbstoreshoppingcarts.TotalDiscount}$"
                 )
                 _logger.error(msg)
                 self.lst_error.append(msg)
@@ -1684,6 +1684,11 @@ class Migration:
                 )
                 if item_id:
                     value["product_id"] = item_id.id
+                    value["image_1920"] = item_id.image_1920
+                    value["name"] = item_id.name
+                    value["description"] = item_id.description_sale
+                    value["description_short"] = item_id.description_sale
+                    value["description_html"] = item_id.website_description
             obj_slide_channel_id = env[model_name].create(value)
 
             self.dct_k_tbtrainingcourses_id_test_v_slide_channel[
@@ -1699,7 +1704,7 @@ class Migration:
                 )
 
     def continue_migrate_tbTrainingCourses_knowledge_question(
-        self, obj_slide_channel_id, test_id_tbl
+        self, test_id_tbl
     ):
         default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
         env = api.Environment(self.cr, SUPERUSER_ID, {})
@@ -1716,8 +1721,6 @@ class Migration:
             self.dct_data_skip[lbl_knowledge_test] += 1
             return False, False
         knowledge_test_tbl = lst_knowledge_test_tbl[0]
-
-        obj_slide_channel_id.description = knowledge_test_tbl.CertificateBodyFR
 
         # Survey.question init
         lbl_knowledge_question = f"{self.db_name}.dbo.tbKnowledgeQuestions"
