@@ -29,6 +29,7 @@ MIGRATE_INVOICE = False
 MIGRATE_COUPON = False
 link_generic_video_demo = ""
 USE_DISCOUNT_PERC = False
+LST_KEY_EVENT = [""]
 
 # try:
 #     import pymssql
@@ -407,6 +408,8 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbcontents[obj_id_i] = obj_res_partner_id
+            # Give portal access
+            obj_res_partner_id.action_grant_access()
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
@@ -1645,6 +1648,8 @@ class Migration:
             return
         table_name = f"{self.db_name}.dbo.tbTrainingCourses"
         lst_tbl_tbtrainingcourses = self.dct_tbl.get(table_name)
+        # table_name = f"{self.db_name}.dbo.tbStoreItems"
+        # lst_tbl_tbstoreitems = self.dct_tbl.get(table_name)
         lst_tbl_tbStoreItemTrainingCourses = self.dct_tbl.get(
             f"{self.db_name}.dbo.tbStoreItemTrainingCourses"
         )
@@ -1663,6 +1668,8 @@ class Migration:
                     len(lst_tbl_tbtrainingcourses) - i
                 )
                 break
+            # if tbtrainingcourses.CategoryID not in (1, 2):
+            #     continue
 
             pos_id = f"{i+1}/{len(lst_tbl_tbtrainingcourses)}"
 
@@ -1671,6 +1678,22 @@ class Migration:
             # TODO ReleaseDate
             obj_id_i = tbtrainingcourses.CourseID
             name = tbtrainingcourses.CourseName
+            # obj_id_i = tbtrainingcourses.ItemID
+            # name = tbtrainingcourses.ItemNameFR
+
+            ignore = False
+            for key_ignore in LST_KEY_EVENT:
+                if name.endswith(key_ignore.strip()):
+                    msg = (
+                        f"Ignore course ID {obj_id_i} name {name}. Will be en"
+                        " event."
+                    )
+                    _logger.warning(msg)
+                    self.lst_warning.append(msg)
+                    ignore = True
+                    break
+            if ignore:
+                continue
 
             value = {
                 "name": name,
@@ -2149,7 +2172,7 @@ class Migration:
                 "email": email,
                 "state_id": state_id,
                 "country_id": country_id,
-                "gender": "female" if tbusers.Gender else "male",
+                # "gender": "female" if tbusers.Gender else "male",
                 "tz": "America/Montreal",
                 "create_date": tbusers.CreatedDate,
             }
