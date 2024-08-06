@@ -18,8 +18,6 @@ Migrate sqlserver for ClientA
         "event_sale",
         "mass_mailing",
         "loyalty",
-        "partner_contact_gender",
-        "partner_contact_birthdate",
         "sale_fixed_discount",
     ],
     "external_dependencies": {

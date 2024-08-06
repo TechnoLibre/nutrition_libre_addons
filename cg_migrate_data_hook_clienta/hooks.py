@@ -1276,6 +1276,15 @@ class Migration:
 
             pos_id = f"{i+1}/{len(lst_tbl_tbstoreshoppingcarts)}"
             obj_id_i = tbstoreshoppingcarts.CartID
+            date_created = tbstoreshoppingcarts.DateCreated
+            date_paid = date_created
+            if tbstoreshoppingcarts.DatePaid:
+                date_paid = tbstoreshoppingcarts.DatePaid
+            if tbstoreshoppingcarts.OrderDate:
+                date_order = tbstoreshoppingcarts.OrderDate
+            else:
+                date_order = date_paid
+
             # if (
             #     not tbstoreshoppingcarts.IsCompleted
             #     and tbstoreshoppingcarts.ProviderStatusText != "completed"
@@ -1298,13 +1307,12 @@ class Migration:
             # TODO check store_shopping_cart.ProviderTransactionID
             # TODO check store_shopping_cart.TotalAmount
             # TODO check store_shopping_cart.TotalDiscount
-            # TODO check store_shopping_cart.DatePaid
             value_sale_order = {
                 # "name": store_shopping_cart.ItemNameFR,
                 # "list_price": store_item.ItemSellPrice,
                 # "standard_price": store_item.ItemBuyCost,
-                "date_order": tbstoreshoppingcarts.DateCreated,
-                "create_date": tbstoreshoppingcarts.DateCreated,
+                "date_order": date_order,
+                "create_date": date_order,
                 "partner_id": order_partner_id.id,
                 # "is_published": store_item.IsActive,
                 "state": "sale",
@@ -1323,7 +1331,8 @@ class Migration:
             comment_message = (
                 "Transaction"
                 f" #{tbstoreshoppingcarts.ProviderTransactionID} {tbstoreshoppingcarts.ProviderStatusText}<br/>Date"
-                f" {tbstoreshoppingcarts.DateCreated}<br />Total amount"
+                f" {date_created}<br/>Date order {date_order}<br/>Date paid"
+                f" {date_paid}<br/>Total amount"
                 f" {tbstoreshoppingcarts.TotalAmount}. Total discount"
                 f" {tbstoreshoppingcarts.TotalDiscount}"
             )
@@ -1346,7 +1355,7 @@ class Migration:
                     "name": "Non défini",
                     # "list_price": store_item.ItemSellPrice,
                     # "standard_price": store_item.ItemBuyCost,
-                    "create_date": tbstoreshoppingcarts.DateCreated,
+                    "create_date": date_order,
                     "order_partner_id": order_partner_id.id,
                     "order_id": sale_order_id.id,
                     "price_unit": tbstoreshoppingcarts.TotalAmount / 1.14975,
@@ -1362,7 +1371,7 @@ class Migration:
                 _logger.error(
                     "Need more information, missing charts items for chart"
                     f" {tbstoreshoppingcarts.CartID}. Date"
-                    f" {tbstoreshoppingcarts.DateCreated}"
+                    f" {date_order}"
                 )
             else:
                 for item in lst_items:
@@ -1411,7 +1420,7 @@ class Migration:
                         "name": name,
                         # "list_price": store_item.ItemSellPrice,
                         # "standard_price": store_item.ItemBuyCost,
-                        "create_date": tbstoreshoppingcarts.DateCreated,
+                        "create_date": date_order,
                         "order_partner_id": order_partner_id.id,
                         "order_id": sale_order_id.id,
                         "price_unit": item.ItemSellPrice,
@@ -1441,7 +1450,7 @@ class Migration:
                         msg = (
                             f"Cart {tbstoreshoppingcarts.CartID} for item id"
                             f" {item.ItemID}, calculated value is None. Date"
-                            f" {tbstoreshoppingcarts.DateCreated}"
+                            f" {date_paid}"
                         )
                         _logger.warning(msg)
                         self.lst_warning.append(msg)
@@ -1476,7 +1485,7 @@ class Migration:
                     f"Problème de calcul de {diff}$ pour shopping ID"
                     f" {tbstoreshoppingcarts.CartID}. Total calculé"
                     f" {sale_order_id.amount_total}$ est différent. Date"
-                    f" {tbstoreshoppingcarts.DateCreated}. Total amount"
+                    f" {date_order}. Total amount"
                     f" {tbstoreshoppingcarts.TotalAmount}$. Total discount"
                     f" {tbstoreshoppingcarts.TotalDiscount}$"
                 )
@@ -1526,8 +1535,8 @@ class Migration:
                     "move_type": "out_invoice",  # for customer invoice
                     "partner_id": sale_order_id.partner_id.id,
                     "journal_id": journal_sale_id.id,
-                    "date": tbstoreshoppingcarts.DateCreated,
-                    "invoice_date": tbstoreshoppingcarts.DateCreated,
+                    "date": date_paid,
+                    "invoice_date": date_paid,
                     "invoice_origin": sale_order_id.name,
                     "currency_id": env.company.currency_id.id,
                     "company_id": env.company.id,
@@ -1540,7 +1549,8 @@ class Migration:
                 comment_message = (
                     "Transaction"
                     f" #{tbstoreshoppingcarts.ProviderTransactionID} {tbstoreshoppingcarts.ProviderStatusText}<br/>Date"
-                    f" {tbstoreshoppingcarts.DateCreated}<br/>Total amount"
+                    f" create {date_created}<br/>Date order"
+                    f" {date_order}<br/>Date paid {date_paid}<br/>Total amount"
                     f" {tbstoreshoppingcarts.TotalAmount}. Total discount"
                     f" {tbstoreshoppingcarts.TotalDiscount}"
                 )
@@ -1566,7 +1576,7 @@ class Migration:
                 if invoice_id.amount_total > 0:
                     vals = {
                         "amount": invoice_id.amount_total,
-                        "date": tbstoreshoppingcarts.DateCreated,
+                        "date": date_paid,
                         "partner_type": "customer",
                         "partner_id": sale_order_id.partner_id.id,
                         "payment_type": "inbound",
@@ -1593,7 +1603,7 @@ class Migration:
                     if not payment_ml.reconciled:
                         msg = (
                             f"Facture non payé id {invoice_id.id}. Date"
-                            f" {tbstoreshoppingcarts.DateCreated}"
+                            f" {date_paid}"
                         )
                         _logger.warning(msg)
                         self.lst_warning.append(msg)
@@ -1622,7 +1632,7 @@ class Migration:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
                     f" '{name}' id {obj_id_i}. Date"
-                    f" {tbstoreshoppingcarts.DateCreated}"
+                    f" {date_paid}"
                 )
 
     def migrate_tbTrainingCourses(self):
@@ -2134,7 +2144,6 @@ class Migration:
 
             # TODO IsAnimator is internal member, else only portal member
             # Info ignore DisplayName, FirstName, Gender, ProperName, LastName, ProviderUserKey, UserId
-            # TODO Occupation if exist
             value = {
                 "name": name,
                 "email": email,
@@ -2145,8 +2154,11 @@ class Migration:
                 "create_date": tbusers.CreatedDate,
             }
 
-            if tbusers.DateOfBirth:
-                value["birthdate_date"] = tbusers.DateOfBirth
+            if tbusers.Occupation and tbusers.Occupation not in ["xxx"]:
+                value["function"] = tbusers.Occupation
+
+            # if tbusers.DateOfBirth:
+            #     value["birthdate_date"] = tbusers.DateOfBirth
 
             if tbusers.AddressLine1 and tbusers.AddressLine1.strip():
                 value["street"] = tbusers.AddressLine1.strip()
@@ -2191,11 +2203,11 @@ class Migration:
                     "Dernière modification :"
                     f" {tbusers.LastUpdatedDate.strftime('%Y/%d/%m %H:%M:%S')}<br/>"
                 )
-            # if tbusers.DateOfBirth:
-            #     comment_message += (
-            #         "Date de naissance :"
-            #         f" {tbusers.DateOfBirth.strftime('%Y/%d/%m')}<br/>"
-            #     )
+            if tbusers.DateOfBirth:
+                comment_message += (
+                    "Date de naissance :"
+                    f" {tbusers.DateOfBirth.strftime('%Y/%d/%m')}<br/>"
+                )
             if tbusers.IsAnimator:
                 comment_message += f"Est un animateur<br/>"
             if tbusers.Occupation:
