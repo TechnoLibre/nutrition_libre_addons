@@ -30,6 +30,7 @@ MIGRATE_COUPON = False
 link_generic_video_demo = ""
 USE_DISCOUNT_PERC = False
 LST_KEY_EVENT = [""]
+ENABLE_SELLER_MARKETPLACE = False
 
 # try:
 #     import pymssql
@@ -408,8 +409,7 @@ class Migration:
             obj_res_partner_id = env[model_name].create(value)
 
             dct_tbcontents[obj_id_i] = obj_res_partner_id
-            # Give portal access
-            obj_res_partner_id.action_grant_access()
+
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
@@ -872,9 +872,7 @@ class Migration:
             "description_sale": "Frais non déterminé.",
             "taxes_id": [(6, 0, self.sale_tax_id.ids)],
         }
-        self.default_product_frais_id = env["product.template"].create(
-            value_product
-        )
+        self.default_product_frais_id = env[model_name].create(value_product)
 
         for i, tbstoreitems in enumerate(lst_tbl_tbstoreitems):
             if DEBUG_LIMIT and i > LIMIT:
@@ -1655,12 +1653,13 @@ class Migration:
         )
         model_name = "slide.channel"
 
-        default_seller_id = self.dct_partner_id[DEFAULT_SELL_USER_ID]
-        default_seller_id.seller = True
-        default_seller_id.url_handler = default_seller_id.name.replace(
-            " ", "_"
-        )
-        default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
+        if ENABLE_SELLER_MARKETPLACE:
+            default_seller_id = self.dct_partner_id[DEFAULT_SELL_USER_ID]
+            default_seller_id.seller = True
+            default_seller_id.url_handler = default_seller_id.name.replace(
+                " ", "_"
+            )
+            default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
 
         for i, tbtrainingcourses in enumerate(lst_tbl_tbtrainingcourses):
             if DEBUG_LIMIT and i > LIMIT:
@@ -1702,9 +1701,10 @@ class Migration:
                 "visibility": "public",
                 "enroll": "payment",
                 "create_date": tbtrainingcourses.CreatedDate,
-                "seller_id": default_seller_id.id,
-                "user_id": default_user_seller_id.id,
             }
+            if ENABLE_SELLER_MARKETPLACE:
+                value["seller_id"] = default_seller_id.id
+                value["user_id"] = default_user_seller_id.id
 
             product_course_id = [
                 a
@@ -2201,6 +2201,7 @@ class Migration:
             obj_partner_id = env[model_name].create(value)
             dct_tbusers[obj_id_i] = obj_partner_id
             self.dct_partner_id[obj_id_i] = obj_partner_id
+
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
@@ -2269,5 +2270,13 @@ class Migration:
                 )
 
                 self.dct_res_user_id[obj_id_i] = obj_user
+            else:
+                # Give portal access
+                wizard_all = (
+                    env["portal.wizard"]
+                    .with_context(**{"active_ids": [obj_partner_id.id]})
+                    .create({})
+                )
+                wizard_all.user_ids.action_grant_access()
 
         self.dct_tbusers = dct_tbusers
