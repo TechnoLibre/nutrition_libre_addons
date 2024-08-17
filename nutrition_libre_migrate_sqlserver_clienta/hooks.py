@@ -985,12 +985,12 @@ class Migration:
         )[0]
         # TODO configure tax quebec
         # Configure to allow no suspens
-        journal_id.inbound_payment_method_line_ids[
-            0
-        ].payment_account_id = journal_id.default_account_id.id
-        journal_id.outbound_payment_method_line_ids[
-            0
-        ].payment_account_id = journal_id.default_account_id.id
+        journal_id.inbound_payment_method_line_ids[0].payment_account_id = (
+            journal_id.default_account_id.id
+        )
+        journal_id.outbound_payment_method_line_ids[0].payment_account_id = (
+            journal_id.default_account_id.id
+        )
         sale_tax_id = env["account.tax"].search(
             [
                 (
@@ -1029,12 +1029,12 @@ class Migration:
             f"{self.db_name}.dbo.tbTrainingCourses"
         )
         lst_tbl_content = self.dct_tbl.get(f"{self.db_name}.dbo.tbContents")
-        lst_tbl_coupon_allowed_item = self.dct_tbl.get(
-            f"{self.db_name}.dbo.tbCouponAllowedItems"
-        )
-        lst_tbl_store_item_animator = self.dct_tbl.get(
-            f"{self.db_name}.dbo.tbStoreItemAnimators"
-        )
+        # lst_tbl_coupon_allowed_item = self.dct_tbl.get(
+        #     f"{self.db_name}.dbo.tbCouponAllowedItems"
+        # )
+        # lst_tbl_store_item_animator = self.dct_tbl.get(
+        #     f"{self.db_name}.dbo.tbStoreItemAnimators"
+        # )
         lst_tbl_store_item_content_package_mapping = self.dct_tbl.get(
             f"{self.db_name}.dbo.tbStoreItemContentPackageMappings"
         )
@@ -1047,9 +1047,9 @@ class Migration:
         lst_tbl_store_item_contents = self.dct_tbl.get(
             f"{self.db_name}.dbo.tbStoreItemContents"
         )
-        lst_tbl_store_item_picture = self.dct_tbl.get(
-            f"{self.db_name}.dbo.tbStoreItemPictures"
-        )
+        # lst_tbl_store_item_picture = self.dct_tbl.get(
+        #     f"{self.db_name}.dbo.tbStoreItemPictures"
+        # )
         lst_tbl_store_item = self.dct_tbl.get(
             f"{self.db_name}.dbo.tbStoreItems"
         )
@@ -1171,13 +1171,13 @@ class Migration:
                     "survey_id": obj_survey.id,
                 }
                 if knowledge_question_tbl.SubjectFR:
-                    base_qvalues[
-                        "description"
-                    ] = f"<p>{knowledge_question_tbl.SubjectFR}</p>"
+                    base_qvalues["description"] = (
+                        f"<p>{knowledge_question_tbl.SubjectFR}</p>"
+                    )
                 question_id = env["survey.question"].create(base_qvalues)
-                self.dct_question[
-                    knowledge_question_tbl.QuestionID
-                ] = question_id
+                self.dct_question[knowledge_question_tbl.QuestionID] = (
+                    question_id
+                )
 
                 # Continue Survey.question.answer
                 tbl_knowledge_question_id = knowledge_question_tbl.QuestionID
@@ -1202,9 +1202,11 @@ class Migration:
                         "value": knowledge_question_answer_tbl.AnswerFR,
                         "is_correct": knowledge_question_answer_tbl.IsRightAnswer,
                         "question_id": question_id.id,
-                        "answer_score": 10
-                        if knowledge_question_answer_tbl.IsRightAnswer
-                        else 0,
+                        "answer_score": (
+                            10
+                            if knowledge_question_answer_tbl.IsRightAnswer
+                            else 0
+                        ),
                     }
                     question_answer_id = env["survey.question.answer"].create(
                         value_answer
@@ -1306,9 +1308,9 @@ class Migration:
                     "create_date": tbl_knowledge_test_results.DateCreated,
                     "suggested_answer_id": survey_question_answer.id,
                     "answer_is_correct": survey_question_answer.is_correct,
-                    "answer_score": 10
-                    if survey_question_answer.is_correct
-                    else 0,
+                    "answer_score": (
+                        10 if survey_question_answer.is_correct else 0
+                    ),
                 }
                 obj_survey_user_input_line = env[
                     "survey.user_input.line"
@@ -1428,9 +1430,9 @@ class Migration:
                 product_template_id = env["product.template"].create(
                     value_product
                 )
-                self.dct_product_template[
-                    store_item.ItemID
-                ] = product_template_id
+                self.dct_product_template[store_item.ItemID] = (
+                    product_template_id
+                )
 
         for store_shopping_cart in lst_tbl_store_shopping_cart:
             if (

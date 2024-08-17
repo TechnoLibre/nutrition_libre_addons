@@ -96,7 +96,6 @@ def post_init_hook(cr, e):
     # migration.migrate_tbStoreItemVariants()
     # migration.migrate_tbStoreShoppingCartItemCoupons()
     # migration.migrate_tbStoreShoppingCartItems()
-    # migration.migrate_tbStoreShoppingCartItemTaxes()
     migration.migrate_tbCoupons()
     migration.migrate_tbStoreShoppingCarts()
 
@@ -189,7 +188,6 @@ class Migration:
         self.dct_tbstoreitemvariants = {}
         self.dct_tbstoreshoppingcartitemcoupons = {}
         self.dct_tbstoreshoppingcartitems = {}
-        self.dct_tbstoreshoppingcartitemtaxes = {}
         self.dct_k_tbstoreshoppingcarts_v_sale_order = {}
         self.dct_k_tbtrainingcourses_id_test_v_slide_channel = {}
         self.dct_k_tbtrainingcourses_v_slide_channel = {}
@@ -513,9 +511,9 @@ class Migration:
                     "active": tbcoupons.IsActive,
                     "discount": tbcoupons.CouponAmount * 100,
                     "program_id": obj_coupon_id.id,
-                    "discount_mode": "percent"
-                    if tbcoupons.IsPercent
-                    else "per_order",
+                    "discount_mode": (
+                        "percent" if tbcoupons.IsPercent else "per_order"
+                    ),
                 }
                 obj_coupon_reward_id = env["loyalty.reward"].create(
                     value_reward
@@ -622,9 +620,9 @@ class Migration:
 
             obj_product_category_id = env[model_name].create(value)
 
-            self.dct_k_tbstorecategories_v_product_category[
-                obj_id_i
-            ] = obj_product_category_id
+            self.dct_k_tbstorecategories_v_product_category[obj_id_i] = (
+                obj_product_category_id
+            )
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
@@ -708,9 +706,9 @@ class Migration:
 
             obj_res_partner_id = env[model_name].create(value)
 
-            dct_tbstoreitemcontentpackagemappings[
-                obj_id_i
-            ] = obj_res_partner_id
+            dct_tbstoreitemcontentpackagemappings[obj_id_i] = (
+                obj_res_partner_id
+            )
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
@@ -975,9 +973,9 @@ class Migration:
             if tbstoreitems.ItemDescriptionExtendedFR:
                 value_product["website_description"] = website_description
             product_template_id = env[model_name].create(value_product)
-            self.dct_k_tbstoreitems_v_product_template[
-                obj_id_i
-            ] = product_template_id
+            self.dct_k_tbstoreitems_v_product_template[obj_id_i] = (
+                product_template_id
+            )
 
             if DEBUG_OUTPUT:
                 _logger.info(
@@ -1020,9 +1018,9 @@ class Migration:
             }
             env["product.image"].create(value_image)
             obj_id_i = tbstoreitempictures.PictureID
-            self.dct_k_tbstoreitempictures_v_product_template[
-                obj_id_i
-            ] = product_id
+            self.dct_k_tbstoreitempictures_v_product_template[obj_id_i] = (
+                product_id
+            )
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
@@ -1193,51 +1191,6 @@ class Migration:
 
         self.dct_tbstoreshoppingcartitems = dct_tbstoreshoppingcartitems
 
-    def migrate_tbStoreShoppingCartItemTaxes(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreShoppingCartItemTaxes")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreshoppingcartitemtaxes:
-            return
-        dct_tbstoreshoppingcartitemtaxes = {}
-        table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItemTaxes"
-        lst_tbl_tbstoreshoppingcartitemtaxes = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbstoreshoppingcartitemtaxes in enumerate(
-            lst_tbl_tbstoreshoppingcartitemtaxes
-        ):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbstoreshoppingcartitemtaxes) - i
-                )
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbstoreshoppingcartitemtaxes)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreshoppingcartitemtaxes.ID
-            # name = tbstoreshoppingcartitemtaxes.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreshoppingcartitemtaxes[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreshoppingcartitemtaxes = (
-            dct_tbstoreshoppingcartitemtaxes
-        )
-
     def migrate_tbStoreShoppingCarts(self):
         """
         :return:
@@ -1252,6 +1205,9 @@ class Migration:
         lst_tbl_tbstoreshoppingcarts = self.dct_tbl.get(table_name)
         table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItemCoupons"
         lst_tbl_tbstoreshoppingcartitemcoupons = self.dct_tbl.get(table_name)
+        lst_tbl_tbstoreshoppingcartitemtaxes = self.dct_tbl.get(
+            f"{self.db_name}.dbo.tbStoreShoppingCartItemTaxes"
+        )
         lst_tbl_store_shopping_cart_item = self.dct_tbl.get(
             f"{self.db_name}.dbo.tbStoreShoppingCartItems"
         )
@@ -1267,6 +1223,11 @@ class Migration:
             [("type", "=", "sale"), ("company_id", "=", env.company.id)]
         )[0]
         model_name = "sale.order"
+
+        # Transform taxes for faster calcul
+        dct_taxes_cart_item_id = defaultdict(list)
+        for taxe_item in lst_tbl_tbstoreshoppingcartitemtaxes:
+            dct_taxes_cart_item_id[taxe_item.CartItemID].append(taxe_item)
 
         for i, tbstoreshoppingcarts in enumerate(lst_tbl_tbstoreshoppingcarts):
             if DEBUG_LIMIT and i > LIMIT:
@@ -1317,6 +1278,9 @@ class Migration:
                 "partner_id": order_partner_id.id,
                 # "is_published": store_item.IsActive,
                 "state": "sale",
+                "client_order_ref": str(tbstoreshoppingcarts.CartID),
+                "note": '<p>Conditions générales : <a href="https://harmoniesante.com/terms" target="_blank" rel="noreferrer noopener">https://harmoniesante.com/terms</a> </p>',
+                "message_partner_ids": [(6, 0, [order_partner_id.id])],
             }
             sale_order_id = env[model_name].create(value_sale_order)
             # move.action_post()
@@ -1360,7 +1324,7 @@ class Migration:
                     "order_partner_id": order_partner_id.id,
                     "order_id": sale_order_id.id,
                     "price_unit": tbstoreshoppingcarts.TotalAmount / 1.14975,
-                    "product_qty": 1,
+                    "product_uom_qty": 1,
                     "display_type": False,
                     "product_id": self.default_product_frais_id.id,
                     # "tax_ids":
@@ -1425,28 +1389,52 @@ class Migration:
                         "order_partner_id": order_partner_id.id,
                         "order_id": sale_order_id.id,
                         "price_unit": item.ItemSellPrice,
-                        "product_qty": item.Quantity,
+                        "product_uom_qty": item.Quantity,
                         "product_id": product_shopping_id.id,
                         # "is_published": store_item.IsActive,
                     }
+                    # Search if missing taxes
+                    lst_taxes = dct_taxes_cart_item_id.get(item.CartItemID)
+                    if not lst_taxes:
+                        # Force to remove taxes
+                        value_sale_order_line["tax_id"] = [(6, 0, [])]
+                    pre_calculated_sell_price = (
+                        item.ItemSellPrice * item.Quantity
+                    )
+                    discount_price = 0.0
                     if (
-                        item.ItemCalculatedSellPrice != item.ItemSellPrice
+                        item.ItemCalculatedSellPrice
+                        != pre_calculated_sell_price
                         and item.ItemCalculatedSellPrice is not None
                     ):
+                        discount_price = (
+                            pre_calculated_sell_price
+                            - item.ItemCalculatedSellPrice
+                        )
+                        if discount_price < 0:
+                            msg = (
+                                f"Cart {tbstoreshoppingcarts.CartID} for item id"
+                                f" {item.ItemID}, discount is negative: {discount_price}. Date"
+                                f" {date_paid}"
+                            )
+                            _logger.warning(msg)
+                            self.lst_warning.append(msg)
                         if USE_DISCOUNT_PERC:
                             value_sale_order_line["discount"] = (
-                                (
-                                    item.ItemSellPrice
-                                    - item.ItemCalculatedSellPrice
-                                )
-                                / item.ItemSellPrice
+                                discount_price
+                                / pre_calculated_sell_price
                                 * 100.0
                             )
                         else:
                             value_sale_order_line["discount_fixed"] = (
-                                item.ItemSellPrice
-                                - item.ItemCalculatedSellPrice
+                                discount_price
                             )
+                    elif tbstoreshoppingcarts.TotalDiscount:
+                        discount_price = tbstoreshoppingcarts.TotalDiscount
+                        value_sale_order_line["discount_fixed"] = (
+                            discount_price / item.Quantity
+                        )
+
                     if item.ItemCalculatedSellPrice is None:
                         msg = (
                             f"Cart {tbstoreshoppingcarts.CartID} for item id"
@@ -1513,11 +1501,11 @@ class Migration:
                         "name": line.name,
                         "quantity": line.product_uom_qty,
                         # "price_unit": line.price_unit,
-                        "price_unit": line.price_subtotal,
+                        "price_unit": line.price_subtotal / line.product_uom_qty,
                         "account_id": env.ref(
                             "l10n_ca.ca_en_chart_template_en"
                         ).id,
-                        "sale_line_ids": [(6, 0, line.ids)]
+                        "sale_line_ids": [(6, 0, line.ids)],
                         # "tax_ids": False,
                     }
                     # if USE_DISCOUNT_PERC:
@@ -1542,6 +1530,7 @@ class Migration:
                     "currency_id": env.company.currency_id.id,
                     "company_id": env.company.id,
                     "invoice_line_ids": invoice_line,
+                    "narration": '<p>Conditions générales : <a href="https://harmoniesante.com/terms" target="_blank" rel="noreferrer noopener">https://harmoniesante.com/terms</a> </p>',
                 }
 
                 invoice_id = env["account.move"].create(invoice_vals)
@@ -1727,9 +1716,9 @@ class Migration:
             self.dct_k_tbtrainingcourses_id_test_v_slide_channel[
                 tbtrainingcourses.TestID
             ] = obj_slide_channel_id
-            self.dct_k_tbtrainingcourses_v_slide_channel[
-                obj_id_i
-            ] = obj_slide_channel_id
+            self.dct_k_tbtrainingcourses_v_slide_channel[obj_id_i] = (
+                obj_slide_channel_id
+            )
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_name} - ADDED"
@@ -1786,9 +1775,9 @@ class Migration:
             "user_id": default_user_seller_id.id,
         }
         obj_survey = env["survey.survey"].create(value_survey_survey)
-        self.dct_k_knowledgetest_v_survey_id[
-            knowledge_test_tbl.TestID
-        ] = obj_survey
+        self.dct_k_knowledgetest_v_survey_id[knowledge_test_tbl.TestID] = (
+            obj_survey
+        )
 
         for knowledge_question_tbl in lst_knowledge_question_tbl:
             # ignore EN like QuestionEN and SubjectEN
@@ -1799,9 +1788,9 @@ class Migration:
                 "survey_id": obj_survey.id,
             }
             if knowledge_question_tbl.SubjectFR:
-                base_qvalues[
-                    "description"
-                ] = f"<p>{knowledge_question_tbl.SubjectFR}</p>"
+                base_qvalues["description"] = (
+                    f"<p>{knowledge_question_tbl.SubjectFR}</p>"
+                )
             question_id = env["survey.question"].create(base_qvalues)
             self.dct_k_tbknowledgequestions_v_survey_question[
                 knowledge_question_tbl.QuestionID
@@ -1833,9 +1822,11 @@ class Migration:
                     "value": knowledge_question_answer_tbl.AnswerFR,
                     "is_correct": knowledge_question_answer_tbl.IsRightAnswer,
                     "question_id": question_id.id,
-                    "answer_score": 10
-                    if knowledge_question_answer_tbl.IsRightAnswer
-                    else 0,
+                    "answer_score": (
+                        10
+                        if knowledge_question_answer_tbl.IsRightAnswer
+                        else 0
+                    ),
                 }
                 question_answer_id = env["survey.question.answer"].create(
                     value_answer
@@ -2003,9 +1994,9 @@ class Migration:
                     "create_date": tbl_knowledge_test_results.DateCreated,
                     "suggested_answer_id": survey_question_answer.id,
                     "answer_is_correct": survey_question_answer.is_correct,
-                    "answer_score": 10
-                    if survey_question_answer.is_correct
-                    else 0,
+                    "answer_score": (
+                        10 if survey_question_answer.is_correct else 0
+                    ),
                 }
                 obj_survey_user_input_line = env[
                     "survey.user_input.line"

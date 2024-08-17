@@ -20,6 +20,8 @@ Migrate sqlserver for ClientA
         "loyalty",
         "sale_fixed_discount",
         "website_sale_slides",
+        "stock",
+        "sale_stock",
     ],
     "external_dependencies": {
         "python": [
