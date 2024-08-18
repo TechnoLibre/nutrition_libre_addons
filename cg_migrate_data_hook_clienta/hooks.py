@@ -1220,7 +1220,7 @@ class Migration:
             default_seller_id.url_handler = default_seller_id.name.replace(
                 " ", "_"
             )
-            default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
+        default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
 
         for i, tbcourses in enumerate(lst_tbl_tbcourses):
             if DEBUG_LIMIT and i > LIMIT:
@@ -1258,7 +1258,7 @@ class Migration:
             }
             if ENABLE_SELLER_MARKETPLACE:
                 value["seller_id"] = default_seller_id.id
-                value["user_id"] = default_user_seller_id.id
+            value["user_id"] = default_user_seller_id.id
 
             item_id = self.dct_k_tbstoreitems_v_product_template.get(obj_id_i)
             if item_id:
@@ -1628,7 +1628,7 @@ class Migration:
                     ]
                 except Exception as e:
                     msg = (
-                        "Cannot retreive answer ID"
+                        "Cannot retrieve answer ID"
                         f" {associate_answer_result.AnswerID} for"
                         " survey_question_answer."
                     )
