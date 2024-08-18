@@ -1,5 +1,6 @@
 import base64
 import datetime
+import re
 
 # import locale
 import logging
@@ -183,6 +184,8 @@ class Migration:
         self.dct_k_tbtrainingcourses_v_slide_channel = {}
         self.dct_tbusers = {}
         self.dct_data_skip = defaultdict(int)
+        self.dct_k_formation_name_v_product_template = defaultdict(list)
+        self.dct_k_formation_name_v_slide_channel = {}
         # Model into cache
         self.dct_res_user_id = {}
         self.dct_partner_id = {}
@@ -513,6 +516,7 @@ class Migration:
             f"{self.db_name}.dbo.tbStoreItemTaxes"
         )
         model_name = "product.template"
+        pattern_formation_no = r"\b\d+\.\w+\b"
 
         value_product = {
             "name": "Frais inconnu",
@@ -619,15 +623,88 @@ class Migration:
                 "active": tbstoreitems.IsActive,
                 "description_sale": tbstoreitems.ItemDescriptionFR,
                 "taxes_id": [(6, 0, taxes_item_ids)],
+                "purchase_ok": False,
             }
+            ignore_creation = False
+            product_template_id = None
+            no_formation = None
             if tbstoreitems.CategoryID in (1, 2):
                 value_product["detailed_type"] = "course"
+                # Create product_template_id
+                match = re.search(
+                    pattern_formation_no, tbstoreitems.ItemNameFR
+                )
+                if match:
+                    no_formation = match.group()
+                else:
+                    msg = f"Cannot find no_formation into item {tbstoreitems.ItemNameFR}"
+                    _logger.warning(msg)
+                    self.lst_warning.append(msg)
+                    continue
+                if (
+                    no_formation
+                    in self.dct_k_formation_name_v_product_template.keys()
+                ):
+                    ignore_creation = True
+                    product_template_id = (
+                        self.dct_k_formation_name_v_product_template[
+                            no_formation
+                        ][0]
+                    )
+                    # Migration message
+                    print("")
+                    # TODO mettre ancien prix et ancien nom
+                    comment_message = (
+                        "Merge avec "
+                        f" #{tbstoreitems.ItemID} {tbstoreitems.ItemNameFR}<br/>Date"
+                        f" {tbstoreitems.DateCreated}.<br/>Prix de vente {tbstoreitems.ItemSellPrice}$"
+                    )
+                    comment_value = {
+                        "subject": (
+                            "Note de migration - Plateforme ASP.net avant migration -"
+                            f" Item No. {tbstoreitems.ItemID} a été mergé."
+                        ),
+                        "body": f"<p>{comment_message}</p>",
+                        "parent_id": False,
+                        "message_type": "comment",
+                        "author_id": SUPERUSER_ID,
+                        "model": model_name,
+                        "res_id": product_template_id.id,
+                    }
+                    env["mail.message"].create(comment_value)
+
             if tbstoreitems.ItemDescriptionExtendedFR:
                 value_product["website_description"] = website_description
-            product_template_id = env[model_name].create(value_product)
-            self.dct_k_tbstoreitems_v_product_template[obj_id_i] = (
-                product_template_id
-            )
+            if not ignore_creation:
+                product_template_id = env[model_name].create(value_product)
+                if no_formation:
+                    self.dct_k_formation_name_v_product_template[
+                        no_formation
+                    ].append(product_template_id)
+                # Migration message
+                comment_message = (
+                    "Migration item "
+                    f" #{tbstoreitems.ItemID} {tbstoreitems.ItemNameFR}<br/>Date"
+                    f" {tbstoreitems.DateCreated}"
+                )
+                comment_value = {
+                    "subject": (
+                        "Note de migration - Plateforme ASP.net avant migration -"
+                        f" Item No. {tbstoreitems.ItemID}"
+                    ),
+                    "body": f"<p>{comment_message}</p>",
+                    "parent_id": False,
+                    "message_type": "comment",
+                    "author_id": SUPERUSER_ID,
+                    "model": model_name,
+                    "res_id": product_template_id.id,
+                }
+                env["mail.message"].create(comment_value)
+
+            if product_template_id:
+                self.dct_k_tbstoreitems_v_product_template[obj_id_i] = (
+                    product_template_id
+                )
 
             if DEBUG_OUTPUT:
                 _logger.info(
@@ -1213,6 +1290,7 @@ class Migration:
             f"{self.db_name}.dbo.tbStoreItemTrainingCourses"
         )
         model_name = "slide.channel"
+        pattern_formation_no = r"\b\d+\.\w+\b"
 
         if ENABLE_SELLER_MARKETPLACE:
             default_seller_id = self.dct_partner_id[DEFAULT_SELL_USER_ID]
@@ -1222,100 +1300,147 @@ class Migration:
             )
         default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
 
-        for i, tbcourses in enumerate(lst_tbl_tbcourses):
+        for i, tbstoreitems in enumerate(lst_tbl_tbcourses):
             if DEBUG_LIMIT and i > LIMIT:
                 self.dct_data_skip[table_courses_name] += (
                     len(lst_tbl_tbcourses) - i
                 )
                 break
-            if tbcourses.CategoryID not in (1, 2):
+            if tbstoreitems.CategoryID not in (1, 2):
                 continue
             pos_id = f"{i + 1}/{len(lst_tbl_tbcourses)}"
-            obj_id_i = tbcourses.ItemID
-            name = tbcourses.ItemNameFR
+            obj_id_i = tbstoreitems.ItemID
+            name = tbstoreitems.ItemNameFR
 
-            ignore = False
-            for key_ignore in LST_KEY_EVENT:
-                if name.endswith(key_ignore.strip()):
-                    msg = (
-                        f"Ignore course ID {obj_id_i} name {name}. Will be en"
-                        " event."
-                    )
-                    _logger.warning(msg)
-                    self.lst_warning.append(msg)
-                    ignore = True
-                    break
-            if ignore:
+            match = re.search(pattern_formation_no, name)
+            if match:
+                no_formation = match.group()
+            else:
+                msg = f"Cannot find no_formation into item {name}"
+                _logger.warning(msg)
+                self.lst_warning.append(msg)
                 continue
 
-            value = {
-                "name": name,
-                # "description": slide_channel.Description.strip(),
-                "is_published": True,
-                "visibility": "public",
-                "enroll": "payment",
-                "create_date": tbcourses.DateCreated,
-            }
-            if ENABLE_SELLER_MARKETPLACE:
-                value["seller_id"] = default_seller_id.id
-            value["user_id"] = default_user_seller_id.id
+            if (
+                no_formation
+                in self.dct_k_formation_name_v_slide_channel.keys()
+            ):
+                course_id = self.dct_k_formation_name_v_slide_channel.get(
+                    no_formation
+                )
+                # Migration message
+                comment_message = (
+                    "Merge avec "
+                    f" #{tbstoreitems.ItemID} {tbstoreitems.ItemNameFR}<br/>Date"
+                    f" {tbstoreitems.DateCreated}"
+                )
+                comment_value = {
+                    "subject": (
+                        "Note de migration - Plateforme ASP.net avant migration -"
+                        f" Item No. {tbstoreitems.ItemID} a été mergé."
+                    ),
+                    "body": f"<p>{comment_message}</p>",
+                    "parent_id": False,
+                    "message_type": "comment",
+                    "author_id": SUPERUSER_ID,
+                    "model": model_name,
+                    "res_id": course_id.id,
+                }
+                env["mail.message"].create(comment_value)
+            else:
+                # self.dct_k_formation_name_v_product_template[no_formation].append(tbcourses)
+                ignore = False
+                for key_ignore in LST_KEY_EVENT:
+                    if name.endswith(key_ignore.strip()):
+                        msg = (
+                            f"Ignore course ID {obj_id_i} name {name}. Will be en"
+                            " event."
+                        )
+                        _logger.warning(msg)
+                        self.lst_warning.append(msg)
+                        ignore = True
+                        break
+                if ignore:
+                    continue
 
-            item_id = self.dct_k_tbstoreitems_v_product_template.get(obj_id_i)
-            if item_id:
-                value["product_id"] = item_id.id
-                value["image_1920"] = item_id.image_1920
-                value["name"] = item_id.name
-                value["description"] = item_id.description_sale
-                value["description_short"] = item_id.description_sale
-                value["description_html"] = item_id.website_description
-            lst_training_courses = [
-                (pos_training_id, a)
-                for pos_training_id, a in enumerate(lst_tbl_tbtrainingcourses)
-                if a.CourseName.lower() in name.lower()
-            ]
-            if not lst_training_courses:
-                # Disable it
-                value["active"] = False
+                value = {
+                    "name": name,
+                    # "description": slide_channel.Description.strip(),
+                    "is_published": True,
+                    "visibility": "public",
+                    "enroll": "payment",
+                    "create_date": tbstoreitems.DateCreated,
+                }
+                if ENABLE_SELLER_MARKETPLACE:
+                    value["seller_id"] = default_seller_id.id
+                value["user_id"] = default_user_seller_id.id
 
-            obj_slide_channel_id = env[model_name].create(value)
-
-            # Migration message
-            comment_message = (
-                "Migration item"
-                f" #{tbcourses.ItemID} {tbcourses.ItemNameFR}<br/>Date"
-                f" {tbcourses.DateCreated}"
-            )
-            comment_value = {
-                "subject": (
-                    "Note de migration - Plateforme ASP.net avant migration -"
-                    f" Item No. {tbcourses.ItemID}"
-                ),
-                "body": f"<p>{comment_message}</p>",
-                "parent_id": False,
-                "message_type": "comment",
-                "author_id": SUPERUSER_ID,
-                "model": model_name,
-                "res_id": obj_slide_channel_id.id,
-            }
-            env["mail.message"].create(comment_value)
-            if lst_training_courses:
-                if len(lst_training_courses) > 1:
-                    msg = f"Double course name {name}."
-                    _logger.warning(msg)
-                    self.lst_warning.append(msg)
-                pos_training_id, tbtrainingcourses = lst_training_courses[0]
-                obj_training_id_i = tbtrainingcourses.CourseID
-                self.dct_k_tbtrainingcourses_id_test_v_slide_channel[
-                    tbtrainingcourses.TestID
-                ] = obj_slide_channel_id
-                self.dct_k_tbtrainingcourses_v_slide_channel[
-                    obj_training_id_i
-                ] = obj_slide_channel_id
-                if DEBUG_OUTPUT:
-                    _logger.info(
-                        f"{pos_training_id} - {model_name} - table {table_name} - ADDED"
-                        f" '{name}' id {obj_training_id_i}"
+                item_id = self.dct_k_tbstoreitems_v_product_template.get(
+                    obj_id_i
+                )
+                if item_id:
+                    value["product_id"] = item_id.id
+                    value["image_1920"] = item_id.image_1920
+                    value["name"] = item_id.name
+                    value["description"] = item_id.description_sale
+                    value["description_short"] = item_id.description_sale
+                    value["description_html"] = item_id.website_description
+                lst_training_courses = [
+                    (pos_training_id, a)
+                    for pos_training_id, a in enumerate(
+                        lst_tbl_tbtrainingcourses
                     )
+                    if a.CourseName.lower() in name.lower()
+                ]
+                if not lst_training_courses:
+                    # Disable it
+                    value["active"] = False
+
+                obj_slide_channel_id = env[model_name].create(value)
+                self.dct_k_formation_name_v_slide_channel[no_formation] = (
+                    obj_slide_channel_id
+                )
+                # Migration message
+                comment_message = (
+                    "Migration item"
+                    f" #{tbstoreitems.ItemID} {tbstoreitems.ItemNameFR}<br/>Date"
+                    f" {tbstoreitems.DateCreated}"
+                )
+                comment_value = {
+                    "subject": (
+                        "Note de migration - Plateforme ASP.net avant migration -"
+                        f" Item No. {tbstoreitems.ItemID}"
+                    ),
+                    "body": f"<p>{comment_message}</p>",
+                    "parent_id": False,
+                    "message_type": "comment",
+                    "author_id": SUPERUSER_ID,
+                    "model": model_name,
+                    "res_id": obj_slide_channel_id.id,
+                }
+                env["mail.message"].create(comment_value)
+
+                # Support courses with attestation
+                if lst_training_courses:
+                    if len(lst_training_courses) > 1:
+                        msg = f"Double course name {name}."
+                        _logger.warning(msg)
+                        self.lst_warning.append(msg)
+                    pos_training_id, tbtrainingcourses = lst_training_courses[
+                        0
+                    ]
+                    obj_training_id_i = tbtrainingcourses.CourseID
+                    self.dct_k_tbtrainingcourses_id_test_v_slide_channel[
+                        tbtrainingcourses.TestID
+                    ] = obj_slide_channel_id
+                    self.dct_k_tbtrainingcourses_v_slide_channel[
+                        obj_training_id_i
+                    ] = obj_slide_channel_id
+                    if DEBUG_OUTPUT:
+                        _logger.info(
+                            f"{pos_training_id} - {model_name} - table {table_name} - ADDED"
+                            f" '{name}' id {obj_training_id_i}"
+                        )
             if DEBUG_OUTPUT:
                 _logger.info(
                     f"{pos_id} - {model_name} - table {table_courses_name} - ADDED"

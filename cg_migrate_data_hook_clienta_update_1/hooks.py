@@ -36,9 +36,7 @@ def post_init_hook(cr, e):
                 "create_date": sale_order_line_id.create_date,
             }
             # Validate if exist
-            obj_slide_channel_partner = env[
-                "slide.channel.partner"
-            ].search(
+            obj_slide_channel_partner = env["slide.channel.partner"].search(
                 [
                     ("partner_id", "=", partner_id.id),
                     ("channel_id", "=", slide_channel_id.id),
@@ -49,4 +47,3 @@ def post_init_hook(cr, e):
                 obj_slide_channel_partner = env[
                     "slide.channel.partner"
                 ].create(value_slide_channel_partner)
-
