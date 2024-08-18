@@ -1279,6 +1279,25 @@ class Migration:
 
             obj_slide_channel_id = env[model_name].create(value)
 
+            # Migration message
+            comment_message = (
+                "Migration item"
+                f" #{tbcourses.ItemID} {tbcourses.ItemNameFR}<br/>Date"
+                f" {tbcourses.DateCreated}"
+            )
+            comment_value = {
+                "subject": (
+                    "Note de migration - Plateforme ASP.net avant migration -"
+                    f" Item No. {tbcourses.ItemID}"
+                ),
+                "body": f"<p>{comment_message}</p>",
+                "parent_id": False,
+                "message_type": "comment",
+                "author_id": SUPERUSER_ID,
+                "model": model_name,
+                "res_id": obj_slide_channel_id.id,
+            }
+            env["mail.message"].create(comment_value)
             if lst_training_courses:
                 if len(lst_training_courses) > 1:
                     msg = f"Double course name {name}."
