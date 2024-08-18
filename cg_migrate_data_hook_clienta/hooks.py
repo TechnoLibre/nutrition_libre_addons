@@ -57,9 +57,6 @@ def post_init_hook(cr, e):
     # Migration method for each table
     migration.migrate_tbUsers()
 
-    # migration.migrate_tbContents()
-    # migration.migrate_tbCouponAllowedItems()
-    # migration.migrate_tbExpenseCategories()
     migration.migrate_tbStoreCategories()
     migration.migrate_tbStoreItems()
     for (
@@ -87,15 +84,8 @@ def post_init_hook(cr, e):
         )
 
     migration.continue_migrate_tbTrainingCourses_knownledge_answer()
-    # migration.migrate_tbStoreItemAnimators()
-    # migration.migrate_tbStoreItemContentPackageMappings()
-    # migration.migrate_tbStoreItemContentPackages()
-    # migration.migrate_tbStoreItemContents()
-    # migration.migrate_tbStoreItemContentTypes()
 
     # migration.migrate_tbStoreItemVariants()
-    # migration.migrate_tbStoreShoppingCartItemCoupons()
-    # migration.migrate_tbStoreShoppingCartItems()
     migration.migrate_tbCoupons()
     migration.migrate_tbStoreShoppingCarts()
 
@@ -376,87 +366,6 @@ class Migration:
                 (6, 0, self.sale_tax_id.ids)
             ]
 
-    def migrate_tbContents(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbContents")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbcontents:
-            return
-        dct_tbcontents = {}
-        table_name = f"{self.db_name}.dbo.tbContents"
-        lst_tbl_tbcontents = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbcontents in enumerate(lst_tbl_tbcontents):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += len(lst_tbl_tbcontents) - i
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbcontents)}"
-            # TODO update variable name from database table
-            obj_id_i = tbcontents.ID
-            # name = tbcontents.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbcontents[obj_id_i] = obj_res_partner_id
-
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbcontents = dct_tbcontents
-
-    def migrate_tbCouponAllowedItems(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbCouponAllowedItems")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbcouponalloweditems:
-            return
-        dct_tbcouponalloweditems = {}
-        table_name = f"{self.db_name}.dbo.tbCouponAllowedItems"
-        lst_tbl_tbcouponalloweditems = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbcouponalloweditems in enumerate(lst_tbl_tbcouponalloweditems):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbcouponalloweditems) - i
-                )
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbcouponalloweditems)}"
-            # TODO update variable name from database table
-            obj_id_i = tbcouponalloweditems.ID
-            # name = tbcouponalloweditems.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbcouponalloweditems[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbcouponalloweditems = dct_tbcouponalloweditems
-
     def migrate_tbCoupons(self):
         """
         :return:
@@ -548,47 +457,6 @@ class Migration:
                     value_rule["minimum_amount"] = tbcoupons.MinimumAmount
                 obj_coupon_rule_id = env["loyalty.rule"].create(value_rule)
 
-    def migrate_tbExpenseCategories(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbExpenseCategories")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbexpensecategories:
-            return
-        dct_tbexpensecategories = {}
-        table_name = f"{self.db_name}.dbo.tbExpenseCategories"
-        lst_tbl_tbexpensecategories = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbexpensecategories in enumerate(lst_tbl_tbexpensecategories):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbexpensecategories) - i
-                )
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbexpensecategories)}"
-            # TODO update variable name from database table
-            obj_id_i = tbexpensecategories.ID
-            # name = tbexpensecategories.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbexpensecategories[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbexpensecategories = dct_tbexpensecategories
-
     def migrate_tbStoreCategories(self):
         """
         :return:
@@ -629,223 +497,6 @@ class Migration:
                     f" '{name}' id {obj_id_i}"
                 )
 
-    def migrate_tbStoreItemAnimators(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreItemAnimators")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreitemanimators:
-            return
-        dct_tbstoreitemanimators = {}
-        table_name = f"{self.db_name}.dbo.tbStoreItemAnimators"
-        lst_tbl_tbstoreitemanimators = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbstoreitemanimators in enumerate(lst_tbl_tbstoreitemanimators):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbstoreitemanimators) - i
-                )
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemanimators)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreitemanimators.ID
-            # name = tbstoreitemanimators.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreitemanimators[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreitemanimators = dct_tbstoreitemanimators
-
-    def migrate_tbStoreItemContentPackageMappings(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreItemContentPackageMappings")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreitemcontentpackagemappings:
-            return
-        dct_tbstoreitemcontentpackagemappings = {}
-        table_name = f"{self.db_name}.dbo.tbStoreItemContentPackageMappings"
-        lst_tbl_tbstoreitemcontentpackagemappings = self.dct_tbl.get(
-            table_name
-        )
-        model_name = "res.partner"
-
-        for i, tbstoreitemcontentpackagemappings in enumerate(
-            lst_tbl_tbstoreitemcontentpackagemappings
-        ):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbstoreitemcontentpackagemappings) - i
-                )
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemcontentpackagemappings)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreitemcontentpackagemappings.ID
-            # name = tbstoreitemcontentpackagemappings.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreitemcontentpackagemappings[obj_id_i] = (
-                obj_res_partner_id
-            )
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreitemcontentpackagemappings = (
-            dct_tbstoreitemcontentpackagemappings
-        )
-
-    def migrate_tbStoreItemContentPackages(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreItemContentPackages")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreitemcontentpackages:
-            return
-        dct_tbstoreitemcontentpackages = {}
-        table_name = f"{self.db_name}.dbo.tbStoreItemContentPackages"
-        lst_tbl_tbstoreitemcontentpackages = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbstoreitemcontentpackages in enumerate(
-            lst_tbl_tbstoreitemcontentpackages
-        ):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbstoreitemcontentpackages) - i
-                )
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemcontentpackages)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreitemcontentpackages.ID
-            # name = tbstoreitemcontentpackages.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreitemcontentpackages[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreitemcontentpackages = dct_tbstoreitemcontentpackages
-
-    def migrate_tbStoreItemContents(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreItemContents")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreitemcontents:
-            return
-        dct_tbstoreitemcontents = {}
-        table_name = f"{self.db_name}.dbo.tbStoreItemContents"
-        lst_tbl_tbstoreitemcontents = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbstoreitemcontents in enumerate(lst_tbl_tbstoreitemcontents):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbstoreitemcontents) - i
-                )
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemcontents)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreitemcontents.ID
-            # name = tbstoreitemcontents.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreitemcontents[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreitemcontents = dct_tbstoreitemcontents
-
-    def migrate_tbStoreItemContentTypes(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreItemContentTypes")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreitemcontenttypes:
-            return
-        dct_tbstoreitemcontenttypes = {}
-        table_name = f"{self.db_name}.dbo.tbStoreItemContentTypes"
-        lst_tbl_tbstoreitemcontenttypes = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbstoreitemcontenttypes in enumerate(
-            lst_tbl_tbstoreitemcontenttypes
-        ):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbstoreitemcontenttypes) - i
-                )
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbstoreitemcontenttypes)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreitemcontenttypes.ID
-            # name = tbstoreitemcontenttypes.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreitemcontenttypes[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreitemcontenttypes = dct_tbstoreitemcontenttypes
-
     def migrate_tbStoreItems(self):
         """
         :return:
@@ -869,6 +520,7 @@ class Migration:
             "standard_price": 0,
             "description_sale": "Frais non déterminé.",
             "taxes_id": [(6, 0, self.sale_tax_id.ids)],
+            "detailed_type": "service",
         }
         self.default_product_frais_id = env[model_name].create(value_product)
 
@@ -1102,94 +754,6 @@ class Migration:
                 f"{pos_id} - {model_name} - table {table_name} - ADDED"
                 f" '{name}' id {obj_id_i}"
             )
-
-    def migrate_tbStoreShoppingCartItemCoupons(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreShoppingCartItemCoupons")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreshoppingcartitemcoupons:
-            return
-        dct_tbstoreshoppingcartitemcoupons = {}
-        table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItemCoupons"
-        lst_tbl_tbstoreshoppingcartitemcoupons = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbstoreshoppingcartitemcoupons in enumerate(
-            lst_tbl_tbstoreshoppingcartitemcoupons
-        ):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbstoreshoppingcartitemcoupons) - i
-                )
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbstoreshoppingcartitemcoupons)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreshoppingcartitemcoupons.ID
-            # name = tbstoreshoppingcartitemcoupons.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreshoppingcartitemcoupons[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreshoppingcartitemcoupons = (
-            dct_tbstoreshoppingcartitemcoupons
-        )
-
-    def migrate_tbStoreShoppingCartItems(self):
-        """
-        :return:
-        """
-        _logger.info("Migrate tbStoreShoppingCartItems")
-        env = api.Environment(self.cr, SUPERUSER_ID, {})
-        if self.dct_tbstoreshoppingcartitems:
-            return
-        dct_tbstoreshoppingcartitems = {}
-        table_name = f"{self.db_name}.dbo.tbStoreShoppingCartItems"
-        lst_tbl_tbstoreshoppingcartitems = self.dct_tbl.get(table_name)
-        model_name = "res.partner"
-
-        for i, tbstoreshoppingcartitems in enumerate(
-            lst_tbl_tbstoreshoppingcartitems
-        ):
-            if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbstoreshoppingcartitems) - i
-                )
-                break
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbstoreshoppingcartitems)}"
-            # TODO update variable name from database table
-            obj_id_i = tbstoreshoppingcartitems.ID
-            # name = tbstoreshoppingcartitems.Name
-            name = ""
-
-            value = {
-                "name": name,
-            }
-
-            obj_res_partner_id = env[model_name].create(value)
-
-            dct_tbstoreshoppingcartitems[obj_id_i] = obj_res_partner_id
-            if DEBUG_OUTPUT:
-                _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
-                    f" '{name}' id {obj_id_i}"
-                )
-
-        self.dct_tbstoreshoppingcartitems = dct_tbstoreshoppingcartitems
 
     def migrate_tbStoreShoppingCarts(self):
         """
@@ -1481,6 +1045,10 @@ class Migration:
                 _logger.error(msg)
                 self.lst_error.append(msg)
 
+            # Shipping
+            # if sale_order_id.picking_ids:
+            #     sale_order_id.picking_ids.button_validate()
+
             # Associate coupon
             # associate_coupon = [
             #     a
@@ -1501,7 +1069,8 @@ class Migration:
                         "name": line.name,
                         "quantity": line.product_uom_qty,
                         # "price_unit": line.price_unit,
-                        "price_unit": line.price_subtotal / line.product_uom_qty,
+                        "price_unit": line.price_subtotal
+                        / line.product_uom_qty,
                         "account_id": env.ref(
                             "l10n_ca.ca_en_chart_template_en"
                         ).id,
@@ -1526,6 +1095,7 @@ class Migration:
                     "journal_id": journal_sale_id.id,
                     "date": date_paid,
                     "invoice_date": date_paid,
+                    "invoice_date_due": date_paid,
                     "invoice_origin": sale_order_id.name,
                     "currency_id": env.company.currency_id.id,
                     "company_id": env.company.id,
@@ -2211,17 +1781,17 @@ class Migration:
             # Add message about migration information
             comment_message = (
                 "Date de création :"
-                f" {tbusers.CreatedDate.strftime('%Y/%d/%m %H:%M:%S')}<br/>"
+                f" {tbusers.CreatedDate.strftime('%d/%m/%Y %H:%M:%S')}<br/>"
             )
             if tbusers.LastUpdatedDate:
                 comment_message += (
                     "Dernière modification :"
-                    f" {tbusers.LastUpdatedDate.strftime('%Y/%d/%m %H:%M:%S')}<br/>"
+                    f" {tbusers.LastUpdatedDate.strftime('%d/%m/%Y %H:%M:%S')}<br/>"
                 )
             if tbusers.DateOfBirth:
                 comment_message += (
                     "Date de naissance :"
-                    f" {tbusers.DateOfBirth.strftime('%Y/%d/%m')}<br/>"
+                    f" {tbusers.DateOfBirth.strftime('%d/%m/%Y')}<br/>"
                 )
             if tbusers.IsAnimator:
                 comment_message += f"Est un animateur<br/>"
