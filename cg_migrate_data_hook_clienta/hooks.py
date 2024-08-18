@@ -1205,6 +1205,8 @@ class Migration:
             return
         table_name = f"{self.db_name}.dbo.tbTrainingCourses"
         lst_tbl_tbtrainingcourses = self.dct_tbl.get(table_name)
+        table_courses_name = f"{self.db_name}.dbo.tbStoreItems"
+        lst_tbl_tbcourses = self.dct_tbl.get(table_courses_name)
         # table_name = f"{self.db_name}.dbo.tbStoreItems"
         # lst_tbl_tbstoreitems = self.dct_tbl.get(table_name)
         lst_tbl_tbStoreItemTrainingCourses = self.dct_tbl.get(
@@ -1220,24 +1222,17 @@ class Migration:
             )
             default_user_seller_id = self.dct_res_user_id[DEFAULT_SELL_USER_ID]
 
-        for i, tbtrainingcourses in enumerate(lst_tbl_tbtrainingcourses):
+        for i, tbcourses in enumerate(lst_tbl_tbcourses):
             if DEBUG_LIMIT and i > LIMIT:
-                self.dct_data_skip[table_name] += (
-                    len(lst_tbl_tbtrainingcourses) - i
+                self.dct_data_skip[table_courses_name] += (
+                    len(lst_tbl_tbcourses) - i
                 )
                 break
-            # if tbtrainingcourses.CategoryID not in (1, 2):
-            #     continue
-
-            pos_id = f"{i+1}/{len(lst_tbl_tbtrainingcourses)}"
-
-            # Slide Channel
-            # TODO Duration -> create a statistics, check _compute_slides_statistics
-            # TODO ReleaseDate
-            obj_id_i = tbtrainingcourses.CourseID
-            name = tbtrainingcourses.CourseName
-            # obj_id_i = tbtrainingcourses.ItemID
-            # name = tbtrainingcourses.ItemNameFR
+            if tbcourses.CategoryID not in (1, 2):
+                continue
+            pos_id = f"{i + 1}/{len(lst_tbl_tbcourses)}"
+            obj_id_i = tbcourses.ItemID
+            name = tbcourses.ItemNameFR
 
             ignore = False
             for key_ignore in LST_KEY_EVENT:
@@ -1259,41 +1254,127 @@ class Migration:
                 "is_published": True,
                 "visibility": "public",
                 "enroll": "payment",
-                "create_date": tbtrainingcourses.CreatedDate,
+                "create_date": tbcourses.DateCreated,
             }
             if ENABLE_SELLER_MARKETPLACE:
                 value["seller_id"] = default_seller_id.id
                 value["user_id"] = default_user_seller_id.id
 
-            product_course_id = [
-                a
-                for a in lst_tbl_tbStoreItemTrainingCourses
-                if a.CourseID == obj_id_i
+            item_id = self.dct_k_tbstoreitems_v_product_template.get(obj_id_i)
+            if item_id:
+                value["product_id"] = item_id.id
+                value["image_1920"] = item_id.image_1920
+                value["name"] = item_id.name
+                value["description"] = item_id.description_sale
+                value["description_short"] = item_id.description_sale
+                value["description_html"] = item_id.website_description
+            lst_training_courses = [
+                (pos_training_id, a)
+                for pos_training_id, a in enumerate(lst_tbl_tbtrainingcourses)
+                if a.CourseName.lower() in name.lower()
             ]
-            if product_course_id:
-                item_id = self.dct_k_tbstoreitems_v_product_template.get(
-                    product_course_id[0].ItemID
-                )
-                if item_id:
-                    value["product_id"] = item_id.id
-                    value["image_1920"] = item_id.image_1920
-                    value["name"] = item_id.name
-                    value["description"] = item_id.description_sale
-                    value["description_short"] = item_id.description_sale
-                    value["description_html"] = item_id.website_description
+            if not lst_training_courses:
+                # Disable it
+                value["active"] = False
+
             obj_slide_channel_id = env[model_name].create(value)
 
-            self.dct_k_tbtrainingcourses_id_test_v_slide_channel[
-                tbtrainingcourses.TestID
-            ] = obj_slide_channel_id
-            self.dct_k_tbtrainingcourses_v_slide_channel[obj_id_i] = (
-                obj_slide_channel_id
-            )
+            if lst_training_courses:
+                if len(lst_training_courses) > 1:
+                    msg = f"Double course name {name}."
+                    _logger.warning(msg)
+                    self.lst_warning.append(msg)
+                pos_training_id, tbtrainingcourses = lst_training_courses[0]
+                obj_training_id_i = tbtrainingcourses.CourseID
+                self.dct_k_tbtrainingcourses_id_test_v_slide_channel[
+                    tbtrainingcourses.TestID
+                ] = obj_slide_channel_id
+                self.dct_k_tbtrainingcourses_v_slide_channel[
+                    obj_training_id_i
+                ] = obj_slide_channel_id
+                if DEBUG_OUTPUT:
+                    _logger.info(
+                        f"{pos_training_id} - {model_name} - table {table_name} - ADDED"
+                        f" '{name}' id {obj_training_id_i}"
+                    )
             if DEBUG_OUTPUT:
                 _logger.info(
-                    f"{pos_id} - {model_name} - table {table_name} - ADDED"
+                    f"{pos_id} - {model_name} - table {table_courses_name} - ADDED"
                     f" '{name}' id {obj_id_i}"
                 )
+
+        # for i, tbtrainingcourses in enumerate(lst_tbl_tbtrainingcourses):
+        #     if DEBUG_LIMIT and i > LIMIT:
+        #         self.dct_data_skip[table_name] += (
+        #             len(lst_tbl_tbtrainingcourses) - i
+        #         )
+        #         break
+        #
+        #     pos_id = f"{i+1}/{len(lst_tbl_tbtrainingcourses)}"
+        #
+        #     # Slide Channel
+        #     # TODO Duration -> create a statistics, check _compute_slides_statistics
+        #     # TODO ReleaseDate
+        #     obj_id_i = tbtrainingcourses.CourseID
+        #     name = tbtrainingcourses.CourseName
+        #     # obj_id_i = tbtrainingcourses.ItemID
+        #     # name = tbtrainingcourses.ItemNameFR
+        #
+        #     ignore = False
+        #     for key_ignore in LST_KEY_EVENT:
+        #         if name.endswith(key_ignore.strip()):
+        #             msg = (
+        #                 f"Ignore course ID {obj_id_i} name {name}. Will be en"
+        #                 " event."
+        #             )
+        #             _logger.warning(msg)
+        #             self.lst_warning.append(msg)
+        #             ignore = True
+        #             break
+        #     if ignore:
+        #         continue
+        #
+        #     value = {
+        #         "name": name,
+        #         # "description": slide_channel.Description.strip(),
+        #         "is_published": True,
+        #         "visibility": "public",
+        #         "enroll": "payment",
+        #         "create_date": tbtrainingcourses.CreatedDate,
+        #     }
+        #     if ENABLE_SELLER_MARKETPLACE:
+        #         value["seller_id"] = default_seller_id.id
+        #         value["user_id"] = default_user_seller_id.id
+        #
+        #     product_course_id = [
+        #         a
+        #         for a in lst_tbl_tbStoreItemTrainingCourses
+        #         if a.CourseID == obj_id_i
+        #     ]
+        #     if product_course_id:
+        #         item_id = self.dct_k_tbstoreitems_v_product_template.get(
+        #             product_course_id[0].ItemID
+        #         )
+        #         if item_id:
+        #             value["product_id"] = item_id.id
+        #             value["image_1920"] = item_id.image_1920
+        #             value["name"] = item_id.name
+        #             value["description"] = item_id.description_sale
+        #             value["description_short"] = item_id.description_sale
+        #             value["description_html"] = item_id.website_description
+        #     obj_slide_channel_id = env[model_name].create(value)
+        #
+        #     self.dct_k_tbtrainingcourses_id_test_v_slide_channel[
+        #         tbtrainingcourses.TestID
+        #     ] = obj_slide_channel_id
+        #     self.dct_k_tbtrainingcourses_v_slide_channel[obj_id_i] = (
+        #         obj_slide_channel_id
+        #     )
+        #     if DEBUG_OUTPUT:
+        #         _logger.info(
+        #             f"{pos_id} - {model_name} - table {table_name} - ADDED"
+        #             f" '{name}' id {obj_id_i}"
+        #         )
 
     def continue_migrate_tbTrainingCourses_knowledge_question(
         self, test_id_tbl
