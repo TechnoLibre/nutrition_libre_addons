@@ -11,6 +11,7 @@
     'data': [
         'views/assets.xml',  # Chemin des assets pour le CSS et JS
         'views/snippet_templates.xml',  # Fichier template pour les snippets
+        'views/snippet_Ajout_module.xml', 
     ],
     'assets': {
         'web.assets_frontend': [
@@ -21,5 +22,6 @@
     },
     'application': True,  # Si tu veux que ce soit une application visible
     'installable': True,
-    'license': 'LGPL-3',
+    'auto_install': False,
+    'license': 'AGPL-3',
 }
