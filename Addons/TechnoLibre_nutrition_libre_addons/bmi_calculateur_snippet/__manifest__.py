@@ -1,4 +1,3 @@
-
 {
    'name': 'BMI Calculateur Snippet',
     "version": "16.0.1.0.1",
