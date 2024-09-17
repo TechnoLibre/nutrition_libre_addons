@@ -1,0 +1,171 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; 
+}
+.calculator-box {
+    background-image: url('/snippet_growth_calculator/static/src/images/bebe-yeux-bleus.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: auto;
+    padding: 10px;
+    border-radius: 10px;
+    color: black;
+    width: 1400px;
+    margin: 0;
+    display: block;
+}
+h3 {
+    color: #4B0082;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: xx-large;
+}
+.tranche-age {
+    margin-top: 5%;
+    margin-bottom: 3%;
+    color: #4B0082;
+
+}
+.donnees-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    margin: 1% 0;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+.formulaire {
+    width: 27%;
+}
+.form-floating-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.form-floating {
+    position: relative;
+}
+.form-floating input,
+.form-floating select {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #8100dd;
+    width: 100%;
+    max-width: 90%;
+}
+
+.form-floating select {
+    max-width: 100%;
+}
+.form-floating label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 1rem;
+    pointer-events: none;
+    transition: all 0.2s ease-out;
+    color: #8100dd;
+}
+.form-floating input:focus,
+.form-floating select:focus {
+    border-color: #8100dd;
+    outline: none;
+}
+.form-floating input:focus ~ label,
+.form-floating select:focus ~ label,
+.form-floating input:not(:placeholder-shown) ~ label,
+.form-floating select:not(:placeholder-shown) ~ label {
+    top: -0.75rem;
+    left: 0;
+    font-size: 0.75rem;
+    color: #8100dd;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+label {
+    font-weight: bold;
+}
+
+.colored-option {
+    color: #8100dd;
+    
+}
+
+#floatingSex {
+    color: #8100dd;
+    font-weight: bold;
+}
+
+input[type="text"], input[type="number"], textarea {
+    color: #2c004c;
+    font-weight: bold;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+.btn-primary {
+    background-color: #4B0082;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+.btn-primary:hover {
+    background-color: #330057;
+}
+.btn-reset {
+    background-color: #8100dd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+.btn-reset:hover {
+    background-color: #330057;
+}
+.image-container {
+    position: relative;
+    width: 50%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row; /* Empile les canvases */
+    align-items: center; /* Centre les canvases */
+    margin-top: 40px;
+    gap: 5px;
+    transform: translateX(-130px);
+}
+canvas {
+    width: 70%;
+    height: auto;
+    margin: 5px; /* Ajout d'un petit espace entre les canvases */
+}
+
+#resultats {
+    margin-top: 5px;
+    width: 100%;
+    height: auto;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+#resultats p {
+    margin: 10px 0;
+    line-height: 1;
+    padding: 0 1%;
+    color: #330057;
+}
+.text-danger {
+    color: red;
+}
