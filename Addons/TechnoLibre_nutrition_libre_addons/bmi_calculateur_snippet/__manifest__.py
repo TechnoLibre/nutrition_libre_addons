@@ -10,7 +10,7 @@
     'data': [
         'views/assets.xml',  # Chemin des assets pour le CSS et JS
         'views/snippet_templates.xml',  # Fichier template pour les snippets
-        'views/snippet_Ajout_module.xml', 
+        'views/snippet_Ajout_module.xml', # Fichier template pour les snippets
     ],
     'assets': {
         'web.assets_frontend': [
