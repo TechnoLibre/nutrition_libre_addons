@@ -1,6 +1,6 @@
 {
     'name': 'Growth Calculator',
-    'version': '1.0',
+    'version': '16.0.1.0.0',
     'category': 'Website',
     'summary': 'Module for Growth Calculator Snippet',
     'description': """
@@ -24,7 +24,7 @@
         ],
     },
     'installable': True,
-    'application': True,
+    'application': False,
     'auto_install': False,
-    'license': 'LGPL-3',
+    'license': 'AGPL-3',
 }
