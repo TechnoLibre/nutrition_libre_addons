@@ -1,3 +1,4 @@
+
 *~
 *.swp
 *.tmp
@@ -24,8 +25,6 @@ get-poetry.py
 artifacts
 wkhtmltox*
 cache
-<<<<<<< HEAD
-=======
 node_modules
->>>>>>> 4b3ece52fa90618e255a713584238719e1f50e7f
 docker-compose.override.yml
+__pycache__

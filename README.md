@@ -1,3 +1,4 @@
+
 # ERPLibre documentation
 
 Select a guide to install your environment.
@@ -82,3 +83,5 @@ Execute ERPLibre test with his code generator.
 ```bash
 time make test_full_fast
 ```
+# nutrition_libre_addons
+ERPLibre addons for NutritionLibre
