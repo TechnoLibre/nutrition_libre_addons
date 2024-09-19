@@ -1,5 +1,5 @@
 {
-   'name': 'BMI Calculateur Snippet',
+    'name': 'BMI Calculateur Snippet',
     "version": "16.0.1.0.1",
     'summary': 'Calculateur de IMC et Percentile',
     'description': """Ce bout de code ajoute une fonctionnalité à votre site web : un calculateur d'IMC et de percentiles pour enfants.""",
@@ -10,7 +10,6 @@
     'data': [
         'views/assets.xml',  # Chemin des assets pour le CSS et JS
         'views/snippet_templates.xml',  # Fichier template pour les snippets
-        'views/snippet_Ajout_module.xml', 
     ],
     'assets': {
         'web.assets_frontend': [
@@ -19,8 +18,8 @@
             'bmi_calculateur_snippet/static/src/js/bmi_calculator.js',
         ],
     },
-    'application': True,  # Si tu veux que ce soit une application visible
-    'installable': True,
+    'installable': True,  # Ce champ doit être True
+    'application': False,
     'auto_install': False,
     'license': 'AGPL-3',
 }

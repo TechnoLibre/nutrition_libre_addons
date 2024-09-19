@@ -63,4 +63,10 @@
         </div>
     </template>
 
+    <!-- Inclusion dans le snippet de construction de site web -->
+    <template id="bmi_calculator_snippet_inherit" inherit_id="website.snippets">
+        <xpath expr="//div[@id='snippet_structure']/t/t[last()]" position="after">
+            <t t-call="bmi_calculateur_snippet.bmi_calculator_snippet"/>
+        </xpath>
+    </template>
 </odoo>
