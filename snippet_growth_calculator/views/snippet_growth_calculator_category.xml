@@ -1,7 +1,12 @@
 <odoo>
-    <template id="snippet_growth_calculator_category" inherit_id="website.snippets" name="Growth Calculator Snippet Category">
-        <xpath expr="//div[@class='o_snippet_feature']" position="inside">
-            <t t-call="snippet_growth_calculator"/>
-        </xpath>
-    </template>
+    <data>
+        <template id="snippet_growth_calculator_category" inherit_id="website.snippets" name="Growth Calculator Snippet Category">
+            <xpath expr="//div[@id='snippet_feature']//t[@t-snippet][last()]" position="after">
+                <t t-snippet="snippet_growth_calculator" string="Growth Calculator" t-thumbnail="/snippet_growth_calculator/static/src/images/icon.jpg">
+                    <keywords>growth, calculator</keywords>
+                </t>
+            </xpath>
+        </template>
+    </data>
 </odoo>
+
