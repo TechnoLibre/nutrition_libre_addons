@@ -19,7 +19,5 @@
         ],
     },
     'installable': True,  # Ce champ doit être True
-    'application': False,
-    'auto_install': False,
     'license': 'AGPL-3',
 }
