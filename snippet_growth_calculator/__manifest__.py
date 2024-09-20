@@ -16,11 +16,12 @@
     ],
     'assets': {
         'website.assets_frontend': [
-            'snippet_growth_calculator/static/src/css/growth_calculator.css',
-            'snippet_growth_calculator/static/src/js/growth_calculator.js',
-            'https://stackpath.bootstrapcdn.com/bootstrap/5.3.3/css/bootstrap.min.css',
-            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
-            'https://cdn.jsdelivr.net/npm/chart.js@3.8.0/dist/chart.min.js',
+            '/snippet_growth_calculator/static/src/css/growth_calculator.css',
+            '/snippet_growth_calculator/static/src/css/bootstrap.min.css',
+            '/snippet_growth_calculator/static/src/css/all.min.css',
+            '/snippet_growth_calculator/static/src/js/growth_calculator.js',
+            '/snippet_growth_calculator/static/src/js/bootstrap.bundle.min.js',
+            '/snippet_growth_calculator/static/src/js/chart.min.js',
         ],
     },
     'installable': True,
