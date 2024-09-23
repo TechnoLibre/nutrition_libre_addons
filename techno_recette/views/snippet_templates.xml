@@ -1,0 +1,9 @@
+<odoo>
+    <template id="snippet_recette" name="Snippet Recette">
+        <div class="oe_snippet_body">
+            <h2>Recettes</h2>
+            <ul id="recette_list" class="recette-list"></ul>
+            <div id="recette_details" class="recette-details"></div>
+        </div>
+    </template>
+</odoo>

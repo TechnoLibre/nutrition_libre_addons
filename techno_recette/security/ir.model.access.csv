@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_recette_alimentaire,access_recette_alimentaire,model_recette_alimentaire,,1,1,1,1
+access_recette_ingredient,access_recette_ingredient,model_recette_ingredient,,1,1,1,1
+access_recette_etape,access_recette_etape,model_recette_etape,,1,1,1,1

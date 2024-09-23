@@ -1,0 +1,40 @@
+<odoo>
+    <!-- Groupe pour la gestion des recettes -->
+    <record id="group_recette_manager" model="res.groups">
+        <field name="name">Gestionnaire de Recettes</field>
+        <field name="category_id" ref="base.module_category_website"/>
+    </record>
+
+    <!-- Règles d'accès pour le modèle recette.alimentaire -->
+    <record id="recette_alimentaire_rule" model="ir.rule">
+        <field name="name">Accès à Recettes Alimentaires</field>
+        <field name="model_id" ref="model_recette_alimentaire"/>
+        <field name="groups" eval="[(4, ref('group_recette_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Règles d'accès pour le modèle recette.ingredient -->
+    <record id="recette_ingredient_rule" model="ir.rule">
+        <field name="name">Accès à Ingrédients</field>
+        <field name="model_id" ref="model_recette_ingredient"/>
+        <field name="groups" eval="[(4, ref('group_recette_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Règles d'accès pour le modèle recette.etape -->
+    <record id="recette_etape_rule" model="ir.rule">
+        <field name="name">Accès à Étapes</field>
+        <field name="model_id" ref="model_recette_etape"/>
+        <field name="groups" eval="[(4, ref('group_recette_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

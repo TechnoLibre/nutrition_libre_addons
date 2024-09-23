@@ -1,0 +1,14 @@
+.recette-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.recette-item {
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: #2c3e50;
+}
+
+.recette-details {
+    margin-top: 20px;
+}
