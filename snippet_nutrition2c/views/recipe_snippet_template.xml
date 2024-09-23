@@ -1,0 +1,43 @@
+<odoo>
+    <!-- Définition d'un template pour le snippet de recettes -->
+    <template id="recipe_snippet">
+        <section id="recipe-section" class="oe_snippet_body container mt-5">
+            <!-- Liste des recettes affichées dynamiquement -->
+            <div id="recipe-list-container" class="mb-5">
+                <h2>Liste des Recettes</h2>
+                <ul id="recipe-list" class="list-group"></ul>
+            </div>
+
+            <!-- Détails d'une recette affichée dynamiquement -->
+            <div id="recipe-details-container" style="display:none;" class="mb-5">
+                <h2 id="recipe-name"></h2>
+                <h3>Ingrédients:</h3>
+                <ul id="ingredient-list" class="list-group"></ul>
+                <h3>Étapes:</h3>
+                <ul id="step-list" class="list-group"></ul>
+                <button id="back-to-list" class="btn btn-secondary mt-3">Retour à la liste</button>
+            </div>
+
+            <!-- Formulaire d'ajout d'une recette -->
+            <div id="add-recipe-form" style="display:none;" class="mb-5">
+                <h2>Ajouter une Recette</h2>
+                <form id="new-recipe-form">
+                    <div class="mb-3">
+                        <label for="recipe-name-input" class="form-label">Nom de la recette:</label>
+                        <input type="text" id="recipe-name-input" name="name" class="form-control" required>
+                    </div>
+
+                    <h3>Ingrédients</h3>
+                    <div id="ingredient-container" class="mb-3"></div>
+                    <button type="button" id="add-ingredient" class="btn btn-info">Ajouter un ingrédient</button>
+
+                    <h3>Étapes</h3>
+                    <div id="step-container" class="mb-3"></div>
+                    <button type="button" id="add-step" class="btn btn-info">Ajouter une étape</button>
+
+                    <button type="submit" class="btn btn-primary mt-3">Soumettre la recette</button>
+                </form>
+            </div>
+        </section>
+    </template>
+</odoo>
