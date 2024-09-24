@@ -1,1 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?><odoo><template id="assets" name="BMI Snippet Menu Assets" inherit_id="web.assets_frontend"><xpath expr="." position="inside"><link rel="stylesheet" href="/bmi_calculateur_snippet/static/src/css/snippet_style.css"/><script type="text/javascript" src="/bmi_calculateur_snippet/static/src/js/bmi_calculator.js"></script></xpath></template></odoo>
+<!-- <?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<template id="assets" name="BMI Snippet Menu Assets" inherit_id="web.assets_frontend">
+<xpath expr="." position="inside">
+<link rel="stylesheet" href="/bmi_calculateur_snippet/static/src/css/snippet_style.css"/>
+<script type="text/javascript" src="/bmi_calculateur_snippet/static/src/js/bmi_calculator.js">
+</script>
+</xpath>
+</template>
+</odoo> -->

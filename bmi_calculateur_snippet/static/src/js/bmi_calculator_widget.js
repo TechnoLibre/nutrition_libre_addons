@@ -1,41 +1,68 @@
 
-        function calculerIMCPercentile() {
-            var age = parseFloat(document.getElementById('age').value);
-            var taille = parseFloat(document.getElementById('taille').value);
-            var poids = parseFloat(document.getElementById('poids').value);
-            var tailleUnit = document.getElementById('tailleUnit').value;
-            var poidsUnit = document.getElementById('poidsUnit').value;
-            var gender = document.querySelector('input[name="gender"]:checked').value;
-            var ageGroup = document.querySelector('input[name="ageGroup"]:checked').value;
-           
-             // Vérification des plages d'âge
-           
-            if (ageGroup === "Bebe" && (age < 0 || age > 24)) {
-            alert("L'âge pour les bébés doit être compris entre 0 et 24 mois.");
-            return; // Arrête la fonction si l'âge n'est pas valide
-        } else if (ageGroup === "Enfant" && (age < 24 || age > 96)) {
-            alert("L'âge pour les enfants doit être compris entre 24 et 96 mois.");
-            return; // Arrête la fonction si l'âge n'est pas valide
-        }
-            // Conversion des unités si nécessaire
-            if (tailleUnit === "pouces") {
-                taille = taille * 2.54; // Conversion pouces en cm
-            }
-            if (poidsUnit === "livres") {
-                poids = poids * 0.453592; // Conversion livres en kg
-            }
 
-            // Calcul de la grandeur en mètres
-            var grandeur = taille / 100;
-
-            // Calcul de l'IMC
-            var IMC = poids / (grandeur * grandeur);
-
-            var percentile;
-            var message;
-
-            // Ajustements selon l'âge et le sexe
-            if (ageGroup === "Bebe") {
+        odoo.define('bmi_calculateur_snippet.bmi_calculator_widget', function (require) {
+            "use strict";
+        
+            var core = require('web.core');
+            var publicWidget = require('web.public.widget');
+        
+            var CalculateurIMC = publicWidget.Widget.extend({
+                template: 'CalculateurIMCTemplate',
+                events: {
+                    'click .calculer-btn': 'calculerIMCPercentile',
+                    'click .recalculer-btn': 'recalculer'
+                },
+                
+        
+                start: function () {
+                    var def = this._super.apply(this, arguments);
+                    this.$el.html(QWeb.render('CalculateurIMCTemplate', {}));
+                    return def;
+                },
+        
+                calculerIMCPercentile: function () {
+                    var age = parseFloat(this.$('#age').val());
+                    var taille = parseFloat(this.$('#taille').val());
+                    var poids = parseFloat(this.$('#poids').val());
+                    var tailleUnit = this.$('#tailleUnit').val();
+                    var poidsUnit = this.$('#poidsUnit').val();
+                    var gender = this.$('input[name="gender"]:checked').val();
+                    var ageGroup = this.$('input[name="ageGroup"]:checked').val();
+        
+                    // Vérification des plages d'âge
+                    if (ageGroup === "Bebe" && (age < 0 || age > 24)) {
+                        this.displayNotification({
+                            type: 'warning',
+                            title: _t("Attention"),
+                            message: _t("L'âge pour les bébés doit être compris entre 0 et 24 mois.")
+                        });
+                        return;
+                    } else if (ageGroup === "Enfant" && (age < 24 || age > 96)) {
+                        this.displayNotification({
+                            type: 'warning',
+                            title: _t("Attention"),
+                            message: _t("L'âge pour les enfants doit être compris entre 24 et 96 mois.")
+                        });
+                        return;
+                    }
+        
+                    // Conversion des unités si nécessaire
+                    if (tailleUnit === "pouces") {
+                        taille = taille * 2.54; // Conversion pouces en cm
+                    }
+                    if (poidsUnit === "livres") {
+                        poids = poids * 0.453592; // Conversion livres en kg
+                    }
+        
+                    // Calcul de l'IMC
+                    var grandeur = taille / 100;
+                    var IMC = poids / (grandeur * grandeur);
+        
+                    // Logique pour déterminer le percentile et le message
+                    var percentile, message;
+                    // ... (insérez ici la logique de détermination du percentile et du message)
+             // Ajustements selon l'âge et le sexe
+             if (ageGroup === "Bebe") {
                 if (gender === "Garcon") {
                     if (IMC < 14) {
                         percentile = "Sous le 5e percentile";
@@ -110,35 +137,25 @@
                 }
             }
 
-            var resultatsDiv = document.getElementById('resultats');
-            resultatsDiv.innerHTML = `
-                
-                IMC: ${IMC.toFixed(2)}<br>   
-                <p>${message}</p>
-            `;
-
-            // Afficher le bouton de recalcul et masquer le formulaire
-            document.getElementById('calculatorBox').style.display = 'none';
-            document.getElementById('recalculerBtn').style.display = 'block';
-            document.getElementById('canvasContainer').style.display = 'block';
-
-            // Choisir l'image du graphique en fonction de l'âge et du sexe
-            var imagePath = '';
-    if (ageGroup === "Bebe") {
-        if(gender === "Garcon"){
-            imagePath = 'images/courbe_garcon.png';
-        }else{
-            imagePath = 'images/courbe_fille.png';
-        }
-    } else if (ageGroup === "Enfant") {
-        if(gender === "Garcon"){
-            imagePath = 'images/courbe_garcon.png';
-        }else{
-            imagePath = 'images/courbe_fille.png';
-        }
-    }
-    
-    // Mettre à jour la source de l'image
+                    // Affichage des résultats
+                    this.$('#resultats').html(`
+                        <p>IMC: ${IMC.toFixed(2)}</p>
+                        <p>${message}</p>
+                    `);
+        
+                    // Mise à jour de l'interface utilisateur
+                    this.$('#calculatorBox').hide();
+                    this.$('#recalculerBtn').show();
+                    this.$('#canvasContainer').show();
+        
+                    // Mise à jour du graphique
+                    this.updateGraph(age, IMC, gender, ageGroup);
+                },
+        
+                updateGraph: function (age, IMC, gender, ageGroup) {
+                    // Logique pour mettre à jour le graphique
+                    // ... (insérez ici la logique de mise à jour du graphique)
+                     // Mettre à jour la source de l'image
     var img = new Image();
     img.src = imagePath;
 
@@ -183,17 +200,21 @@
         ctx.fillStyle = 'red';
         ctx.fillText("Votre position", x + 10, y); // 'x + 10' décale le texte à droite du point
     };
-        }
-
-        function recalculer() {
-            document.getElementById('calculatorBox').style.display = 'block';
-            document.getElementById('recalculerBtn').style.display = 'none';
-            document.getElementById('canvasContainer').style.display = 'none';
-            document.getElementById('resultats').innerHTML = '';
-             // Vider les champs du formulaire
-            document.getElementById('age').value = '';
-            document.getElementById('taille').value = '';
-            document.getElementById('poids').value = '';
-            document.getElementById('tailleUnit').value = 'cm'; // Réinitialiser l'unité par défaut
-            document.getElementById('poidsUnit').value = 'kg'; // Réinitialiser l'unité par défaut
-        }
+                },
+        
+                recalculer: function () {
+                    this.$('#calculatorBox').show();
+                    this.$('#recalculerBtn').hide();
+                    this.$('#canvasContainer').hide();
+                    this.$('#resultats').empty();
+                    this.$('#age, #taille, #poids').val('');
+                    this.$('#tailleUnit').val('cm');
+                    this.$('#poidsUnit').val('kg');
+                }
+            });
+        
+            publicWidget.registry.bmi_calculator_widget = CalculateurIMC;
+        
+            return CalculateurIMC;
+        });
+        
