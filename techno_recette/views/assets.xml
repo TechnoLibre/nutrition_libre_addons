@@ -1,8 +1,8 @@
-<odoo>
+<!-- <odoo>
     <template id="assets_frontend" inherit_id="web.assets_frontend" name="Recette Assets">
         <xpath expr="." position="inside">
             <link rel="stylesheet" href="/techno_recette/static/src/css/recette_snippet.css"/>
             <script type="text/javascript" src="/techno_recette/static/src/js/recette_snippet.js"></script>
         </xpath>
     </template>
-</odoo>
+</odoo> -->
