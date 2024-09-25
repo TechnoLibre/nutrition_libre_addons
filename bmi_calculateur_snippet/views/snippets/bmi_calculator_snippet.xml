@@ -1,8 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <template id="bmi_calculator_snippet" name="BMI Calculator Snippet">
         <section class="s_bmi_snippet">
             <div class="container">
-                <div id="bmi_calculator_widget" class="o_bmi_calculator"/>
+                <div id="bmi_calculator_widget" class="o_bmi_calculator" t-att-data-name="'bmi_calculator_widget'">
+                    <t t-call="bmi_calculateur_snippet.bmi_calculator_template"/>
+                </div>
             </div>
         </section>
     </template>
@@ -10,7 +13,7 @@
     <template id="external_snippets" inherit_id="website.snippets" priority="8">
         <xpath expr="//div[@id='snippet_structure']//t[@t-snippet][last()]" position="after">
             <t t-snippet="bmi_calculateur_snippet.bmi_calculator_snippet"
-               t-thumbnail="/bmi_calculateur_snippet/static/src/img/snippet_thumb.png"/>
+               t-thumbnail="/bmi_calculateur_snippet/static/src/images/snippet_thumb.jpg"/>
         </xpath>
     </template>
 </odoo>

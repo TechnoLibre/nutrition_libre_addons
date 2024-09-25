@@ -5,19 +5,20 @@
         
             var core = require('web.core');
             var publicWidget = require('web.public.widget');
+            var _t = core._t;
         
             var CalculateurIMC = publicWidget.Widget.extend({
+                selector: '.s_bmi_snippet',
                 template: 'CalculateurIMCTemplate',
                 events: {
                     'click .calculer-btn': 'calculerIMCPercentile',
                     'click .recalculer-btn': 'recalculer'
                 },
-                
-        
+                                       
                 start: function () {
-                    var def = this._super.apply(this, arguments);
-                    this.$el.html(QWeb.render('CalculateurIMCTemplate', {}));
-                    return def;
+                    console.log("Widget started");
+                    this.$el.html(core.qweb.render('CalculateurIMCTemplate', {}));
+                    return this._super.apply(this, arguments);
                 },
         
                 calculerIMCPercentile: function () {
