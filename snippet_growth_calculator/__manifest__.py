@@ -11,7 +11,6 @@
     'depends': ['website'],
     'data': [
         'views/snippet_growth_calculator.xml',
-        'views/snippet_growth_calculator_assets.xml',
         'views/snippet_growth_calculator_category.xml',
     ],
     'assets': {
