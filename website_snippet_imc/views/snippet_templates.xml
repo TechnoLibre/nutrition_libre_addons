@@ -1,0 +1,32 @@
+<odoo>
+    <template id="imc_snippet" name="IMC Snippet" inherit_id="website.snippets">
+        <xpath expr="//div[@class='oe_structure']" position="inside">
+            <div class="oe_snippet" id="snippet_imc">
+                <h2>Calculer l'IMC et le Percentile</h2>
+                <form id="imc_form">
+                    <div class="form-group">
+                        <label for="sexe">Sexe</label>
+                        <select id="sexe" name="sexe">
+                            <option value="Masculin">Masculin</option>
+                            <option value="Féminin">Féminin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Âge (Mois)</label>
+                        <input type="number" id="age" name="age" />
+                    </div>
+                    <div class="form-group">
+                        <label for="poids">Poids (kg)</label>
+                        <input type="number" id="poids" name="poids" />
+                    </div>
+                    <div class="form-group">
+                        <label for="taille">Taille (cm)</label>
+                        <input type="number" id="taille" name="taille" />
+                    </div>
+                    <button type="button" id="calculate_imc">Calculer</button>
+                </form>
+                <div id="imc_result"></div>
+            </div>
+        </xpath>
+    </template>
+</odoo>
