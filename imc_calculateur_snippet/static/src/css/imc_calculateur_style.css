@@ -1,0 +1,76 @@
+.s_imc_snippet {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f9;
+    padding: 20px;
+}
+
+.s_imc_snippet .calculator-box {
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+    background-color: #ffffff;
+}
+
+.s_imc_snippet h3 {
+    color: #ff7fa7;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.s_imc_snippet .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.s_imc_snippet label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #444;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.s_imc_snippet .form-control {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.s_imc_snippet .form-control-index {
+    width: 30%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #f7f1f3;
+}
+
+.s_imc_snippet .btn {
+    background-color: #ff7fa7;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.s_imc_snippet .btn:hover {
+    background-color: #ff507f;
+}
+
+.s_imc_snippet #resultats {
+    margin-top: 20px;
+    color: #333;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}

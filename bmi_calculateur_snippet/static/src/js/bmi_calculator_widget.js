@@ -2,23 +2,27 @@
 
         odoo.define('bmi_calculateur_snippet.bmi_calculator_widget', function (require) {
             "use strict";
+            console.log("BMI Calculator Widget JS loaded");
         
-            var core = require('web.core');
-            var publicWidget = require('web.public.widget');
-            var _t = core._t;
+             var core = require('web.core');
+             var publicWidget = require('web.public.widget');
+             var dom = require('web.dom_ready');
+             var $ = core.$;
+             var _t = core._t;
         
             var CalculateurIMC = publicWidget.Widget.extend({
                 selector: '.s_bmi_snippet',
-                template: 'CalculateurIMCTemplate',
+                template: 'bmi_calculateur_snippet',
                 events: {
                     'click .calculer-btn': 'calculerIMCPercentile',
                     'click .recalculer-btn': 'recalculer'
                 },
                                        
                 start: function () {
-                    console.log("Widget started");
-                    this.$el.html(core.qweb.render('CalculateurIMCTemplate', {}));
-                    return this._super.apply(this, arguments);
+                    console.log("BMI Calculator Widget initialized");
+                    this._super.apply(this, arguments);
+                    this.$el.html(core.qweb.render('bmi_calculateur_snippet', {}));
+                    return Promise.resolve();
                 },
         
                 calculerIMCPercentile: function () {
@@ -30,7 +34,16 @@
                     var gender = this.$('input[name="gender"]:checked').val();
                     var ageGroup = this.$('input[name="ageGroup"]:checked').val();
         
-                    // Vérification des plages d'âge
+                    // Vérification des plages taille poids et âge
+                    if (!age || !taille || !poids) {
+                        this.displayNotification({
+                            type: 'warning',
+                            title: _t("Erreur"),
+                            message: _t("Tous les champs doivent être remplis.")
+                        });
+                        return;
+                    }
+                    
                     if (ageGroup === "Bebe" && (age < 0 || age > 24)) {
                         this.displayNotification({
                             type: 'warning',
@@ -155,8 +168,21 @@
         
                 updateGraph: function (age, IMC, gender, ageGroup) {
                     // Logique pour mettre à jour le graphique
-                    // ... (insérez ici la logique de mise à jour du graphique)
                      // Mettre à jour la source de l'image
+                     var imagePath = '';
+                     if (ageGroup === "Bebe") {
+                         if(gender === "Garcon"){
+                             imagePath = 'images/courbe_garcon.png';
+                         }else{
+                             imagePath = 'images/courbe_fille.png';
+                         }
+                     } else if (ageGroup === "Enfant") {
+                         if(gender === "Garcon"){
+                             imagePath = 'images/courbe_garcon.png';
+                         }else{
+                             imagePath = 'images/courbe_fille.png';
+                         }
+                     }
     var img = new Image();
     img.src = imagePath;
 

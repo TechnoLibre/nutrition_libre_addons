@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<odoo>
-    <template id="bmi_calculator_template" name="BMI Calculator Template">
-        <div class="s_bmi_snippet" t-name="bmi_calculateur_snippet.bmi_calculator_template">
+<!-- <?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="imc_calculateur_snippet.CalculateurIMCTemplate">
+        <div class="s_imc_snippet">
             <div class="calculator-box" id="calculatorBox">
                 <h3>Calculateur de Percentile et d'IMC</h3>
                 <div class="form-group">
@@ -39,12 +39,7 @@
                 </div>
                 <button type="button" class="btn calculer-btn">CALCULER</button>
             </div>
-            <div id="canvasContainer" style="display: none;">
-                <canvas id="curveCanvas" width="400" height="360"></canvas>
-                <img id="curveImage" src="" alt=""/>
-            </div>
             <div id="resultats"></div>
-            <button id="recalculer-btn" class="btn recalculer-btn" style="display: none;">RECALCULER</button>
         </div>
-    </template>
-</odoo>
+    </t>
+</templates> -->
