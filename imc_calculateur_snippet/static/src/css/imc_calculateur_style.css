@@ -7,18 +7,20 @@
 .s_imc_snippet .calculator-box {
     padding: 25px;
     border-radius: 15px;
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgb(229 23 79);
     max-width: 400px;
     width: 100%;
     margin: 0 auto;
     text-align: center;
-    background-color: #ffffff;
+    transition: background-color 0.3s;
 }
 
 .s_imc_snippet h3 {
-    color: #ff7fa7;
-    font-size: 24px;
-    margin-bottom: 20px;
+
+    color: rgb(229 23 79);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    line-height: 2rem;
 }
 
 .s_imc_snippet .form-group {
@@ -53,18 +55,22 @@
 }
 
 .s_imc_snippet .btn {
-    background-color: #ff7fa7;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
+            background-color:rgb(229 23 79); 
+            color: white;
+            /* Ajout  */
+            border-radius: 30px;
+            font-size: 1.25rem;
+            cursor: pointer;
+            line-height: 1.5rem;
+            min-height: 48px;
+            padding: .75rem 1.5rem;
+            transition-duration: .2s;
+            transition-property: all;
+            transition-timing-function: cubic-bezier(.4,0,.2,1);
 }
 
 .s_imc_snippet .btn:hover {
-    background-color: #ff507f;
+    background-color:rgb(148, 5, 43); 
 }
 
 .s_imc_snippet #resultats {
@@ -73,4 +79,9 @@
     padding: 15px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+.text-danger {
+    color: rgb(229 23 79);
+    font-size: 0.875em;
+    margin-top: 0.25rem;
 }

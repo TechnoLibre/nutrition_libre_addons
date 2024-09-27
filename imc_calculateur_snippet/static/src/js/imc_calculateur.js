@@ -13,15 +13,35 @@ odoo.define('imc_calculateur_snippet.imc_calculator', function (require) {
         template: 's_imc_calculator',
         events: {
             'click .calculer-btn': 'calculerIMCPercentile',
-            'click .recalculer-btn': 'recalculer'
+            'click .recalculer-btn': 'recalculer',
+            'change input[name="ageGroup"]': 'ajusterPlageAge'
         },
-                               
+        ajusterPlageAge: function(event) {
+            var ageGroup = $(event.target).val();
+            var ageInput = this.$('#age');
+            if (ageGroup === "Bebe") {
+                ageInput.attr('min', 0);
+                ageInput.attr('max', 24);
+            } else {
+                ageInput.attr('min', 24);
+                ageInput.attr('max', 96);
+            }
+            // Ajuster la valeur si elle est hors de la nouvelle plage
+            var currentAge = parseFloat(ageInput.val());
+            if (currentAge < parseFloat(ageInput.attr('min'))) {
+                ageInput.val(ageInput.attr('min'));
+            } else if (currentAge > parseFloat(ageInput.attr('max'))) {
+                ageInput.val(ageInput.attr('max'));
+            }
+        },                  
         start: function () {
             console.log("IMC Calculator Widget initialized");
             return this._super.apply(this, arguments);
         },
 
         calculerIMCPercentile: function () {
+            // Réinitialiser tous les messages d'erreur
+            this.$('.text-danger').text('');
             var age = parseFloat(this.$('#age').val());
             var taille = parseFloat(this.$('#taille').val());
             var poids = parseFloat(this.$('#poids').val());
@@ -29,34 +49,26 @@ odoo.define('imc_calculateur_snippet.imc_calculator', function (require) {
             var poidsUnit = this.$('#poidsUnit').val();
             var gender = this.$('input[name="gender"]:checked').val();
             var ageGroup = this.$('input[name="ageGroup"]:checked').val();
+            var isValid = true;
 
             // Vérification des plages taille poids et âge
-            if (!age || !taille || !poids) {
-                this.displayNotification({
-                    type: 'warning',
-                    title: _t("Erreur"),
-                    message: _t("Tous les champs doivent être remplis.")
-                });
-                return;
+            if (!age || age < 0) {
+                this.$('#ageError').text("L'âge doit être rempli.");
+                isValid = false;
             }
-            
-            if (ageGroup === "Bebe" && (age < 0 || age > 24)) {
-                this.displayNotification({
-                    type: 'warning',
-                    title: _t("Attention"),
-                    message: _t("L'âge pour les bébés doit être compris entre 0 et 24 mois.")
-                });
-                return;
-            } else if (ageGroup === "Enfant" && (age < 24 || age > 96)) {
-                this.displayNotification({
-                    type: 'warning',
-                    title: _t("Attention"),
-                    message: _t("L'âge pour les enfants doit être compris entre 24 et 96 mois.")
-                });
+            if (!taille || taille <= 0) {
+                this.$('#tailleError').text("La taille doit être remplie.");
+                isValid = false;
+            }
+            if (!poids || poids <= 0) {
+                this.$('#poidsError').text("Le poids doit être rempli.");
+                isValid = false;
+            }       
+            if (!isValid) {
                 return;
             }
 
-            // Conversion des unités si nécessaire
+            // Conversion des unités 
             if (tailleUnit === "pouces") {
                 taille = taille * 2.54; // Conversion pouces en cm
             }
@@ -148,21 +160,25 @@ odoo.define('imc_calculateur_snippet.imc_calculator', function (require) {
     }
 
             // Affichage des résultats
-            this.$('#resultats').html(`
-                <p>IMC: ${IMC.toFixed(2)}</p>
-                <p>${message}</p>
-            `);
-
-            // Mise à jour de l'interface utilisateur
-            this.$('#calculatorBox').hide();
-            this.$('#recalculerBtn').show();
-            this.$('#canvasContainer').show();
+            var resultatsHTML = `
+            <h3>Résultats</h3>
+            <p>IMC: ${IMC.toFixed(2)}</p>
+            <p>${message}</p>
+        `;
+        
+        this.$('#resultats').html(resultatsHTML);
+        
+        // Faire défiler jusqu'aux résultats
+        $('html, body').animate({
+            scrollTop: this.$('#resultats').offset().top
+        }, 1000);
 
             // Mise à jour du graphique
             this.updateGraph(age, IMC, gender, ageGroup);
         },
 
         updateGraph: function (age, IMC, gender, ageGroup) {
+            this.$('#canvasContainer').show();
             // Logique pour mettre à jour le graphique
              // Mettre à jour la source de l'image
              var imagePath = '';
@@ -197,9 +213,9 @@ ctx.clearRect(0, 0, canvas.width, canvas.height);
 ctx.drawImage(img, 0, 0);
 
 // Calcul des coordonnées en fonction de l'âge et de l'IMC
-var ageEnAnnee = age / 12; // Convertir l'âge en années si nécessaire
-var ageMin = 0; // L'âge minimum représenté sur le graphique (par exemple, 0 ans)
-var ageMax = 18; // L'âge maximum représenté sur le graphique (par exemple, 20 ans)
+var ageEnAnnee = age / 12; // Convertir l'âge en années 
+var ageMin = 0; // L'âge minimum représenté sur le graphique 
+var ageMax = 18; // L'âge maximum représenté sur le graphique 
 var IMCMin = 11; // L'IMC minimum représenté sur le graphique
 var IMCMax = 34; // L'IMC maximum représenté sur le graphique
 
@@ -222,13 +238,9 @@ ctx.fillText("Votre position", x + 10, y); // 'x + 10' décale le texte à droit
         },
 
         recalculer: function () {
-            this.$('#calculatorBox').show();
-            this.$('#recalculerBtn').hide();
-            this.$('#canvasContainer').hide();
             this.$('#resultats').empty();
-            this.$('#age, #taille, #poids').val('');
-            this.$('#tailleUnit').val('cm');
-            this.$('#poidsUnit').val('kg');
+            this.$('#canvasContainer').hide();
+
         }
     });
 
