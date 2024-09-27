@@ -8,16 +8,17 @@
                         <div class="calculator-box" id="calculatorBox">
                             <h3>Calcul de l'IMC de mon enfant</h3>
                             <div class="form-group">
-                                <input type="radio" id="bebe" name="ageGroup" value="Bebe" checked="checked"/>
+                                <input type="radio" id="bebe" name="ageGroup" value="Bebe" class="custom-radio" checked="checked"/>
                                 <label for="bebe">Bébé (0-24 mois)</label>
-                                <input type="radio" id="enfant" name="ageGroup" value="Enfant"/>
+                                <input type="radio"  id="enfant" name="ageGroup" class="custom-radio" value="Enfant"/>
                                 <label for="enfant">Enfant (24-96 mois)</label>
                             </div>
+
                             <div class="form-group">
                                 <label>Sexe:</label>
-                                <input type="radio" id="garcon" name="gender" value="Garcon" checked="checked"/>
+                                <input type="radio" id="garcon" name="gender" value="Garcon" class="custom-radio" checked="checked"/>
                                 <label for="garcon">Garçon</label>
-                                <input type="radio" id="fille" name="gender" value="Fille"/>
+                                <input type="radio" id="fille" name="gender" class="custom-radio" value="Fille"/>
                                 <label for="fille">Fille</label>
                             </div>
                             <div class="form-group">
@@ -43,15 +44,30 @@
                                     <option value="livres">Livres</option>
                                 </select>
                             </div>
+                                    <button type="button" class="btn calculer-btn">Calculer son IMC</button>
+                            </div>
+                     
 
-                            <button type="button" class="btn calculer-btn">Calculer son IMC</button>
+                        <div id="resultsContainer" class="row mt-4" style="display: none;">
+                            <div class="col-md-6">
+                                <div id="canvasContainer" class="card">
+                                    <div class="card-body">
+                                        <h3 class="card-title">Position sur la Courbe</h3>
+                                        <canvas id="curveCanvas"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="resultats" class="card">
+                                    <div class="card-body">
+                                     <h3 class="card-title">Bilan IMC personnalisé</h3>
+                                       <h4>Votre enfant a un IMC de <span id="imc-value"></span></h4>
+                                        <p>Cela correspond au <span id="percentile-value"></span> pour son âge et son sexe.</p>
+                                        <p id="message-result"></p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div id="resultats"></div>
-                            <div id="canvasContainer">
-                            <canvas id="curveCanvas"></canvas>
-                        </div>
-                        <!-- <button id="recalculerBtn" class="btn recalculer-btn" style="display: none;">RECALCULER</button> -->
-
                     </div>
                 </div>
             </div>

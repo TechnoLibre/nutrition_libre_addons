@@ -160,13 +160,11 @@ odoo.define('imc_calculateur_snippet.imc_calculator', function (require) {
     }
 
             // Affichage des résultats
-            var resultatsHTML = `
-            <h3>Résultats</h3>
-            <p>IMC: ${IMC.toFixed(2)}</p>
-            <p>${message}</p>
-        `;
+            this.$('#imc-value').text(IMC.toFixed(2));
+            this.$('#percentile-value').text(percentile);
+            this.$('#message-result').text(message);
         
-        this.$('#resultats').html(resultatsHTML);
+            this.$('#resultsContainer').show();
         
         // Faire défiler jusqu'aux résultats
         $('html, body').animate({
@@ -175,6 +173,7 @@ odoo.define('imc_calculateur_snippet.imc_calculator', function (require) {
 
             // Mise à jour du graphique
             this.updateGraph(age, IMC, gender, ageGroup);
+           
         },
 
         updateGraph: function (age, IMC, gender, ageGroup) {

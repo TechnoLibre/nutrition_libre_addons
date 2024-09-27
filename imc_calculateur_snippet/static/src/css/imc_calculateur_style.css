@@ -7,7 +7,7 @@
 .s_imc_snippet .calculator-box {
     padding: 25px;
     border-radius: 15px;
-    border: 2px solid rgb(229 23 79);
+    border: 1.3px solid rgb(229 23 79);
     max-width: 400px;
     width: 100%;
     margin: 0 auto;
@@ -16,6 +16,13 @@
 }
 
 .s_imc_snippet h3 {
+
+    color: rgb(229 23 79);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    line-height: 2rem;
+}
+.s_imc_snippet .card-title {
 
     color: rgb(229 23 79);
     font-size: 1.5rem;
@@ -84,4 +91,24 @@
     color: rgb(229 23 79);
     font-size: 0.875em;
     margin-top: 0.25rem;
+}
+.custom-radio:checked {
+    accent-color: rgb(229 23 79);
+}
+#resultsContainer .card {
+    height: 100%;
+}
+
+#resultsContainer .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+#curveCanvas {
+    max-width: 100%;
+    height: auto;
+}
+
+#resultsContainer {
+    margin-top: 20px;
 }
