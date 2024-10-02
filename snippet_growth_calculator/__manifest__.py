@@ -14,15 +14,13 @@
         'views/snippet_growth_calculator_category.xml',
     ],
     'assets': {
-        'website.assets_frontend': [
-            '/snippet_growth_calculator/static/src/css/growth_calculator.css',
-            '/snippet_growth_calculator/static/src/css/bootstrap.min.css',
+        'web.assets_frontend': [
             '/snippet_growth_calculator/static/src/css/all.min.css',
-            '/snippet_growth_calculator/static/src/js/growth_calculator.js',
-            '/snippet_growth_calculator/static/src/js/bootstrap.bundle.min.js',
-            '/snippet_growth_calculator/static/src/js/chart.min.js',
+            '/snippet_growth_calculator/static/src/css/growth_calculator.css',
+            '/snippet_growth_calculator/static/src/js/growth_calculator.js',    
         ],
     },
+    
     'installable': True,
     'application': False,
     'auto_install': False,
