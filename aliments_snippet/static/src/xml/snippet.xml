@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="aliments_snippet.AlimentsList">
+        <div class="aliments-list-content">
+            <ul class="list-group">
+                <t t-foreach="aliments" t-as="aliment">
+                    <li class="list-group-item">
+                        <t t-esc="aliment.name"/>
+                    </li>
+                </t>
+            </ul>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="aliments_snippet" name="Liste d'aliments">
+        <section class="aliments-list">
+            <div class="container">
+                <h2>Liste des aliments</h2>
+                <div id="aliments-container">
+                    <p class="text-muted">En attente, téléchargement de la liste de végétaux...</p>
+                </div>
+                <form id="add-aliment-form" class="mt-4">
+                    <div class="input-group">
+                        <input type="text" id="new-aliment-name" class="form-control" placeholder="Nom de l'aliment"/>
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-primary">Ajouter</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </template>
+
+    <template id="snippet_aliments" inherit_id="website.snippets" name="Aliments Snippet">
+        <xpath expr="//div[@id='snippet_structure']/div[hasclass('o_panel_body')]" position="inside">
+            <t t-snippet="aliments_snippet.aliments_snippet"
+               t-thumbnail="/aliments_snippet/static/src/img/icon.png"/>
+        </xpath>
+    </template>
+</odoo>
