@@ -316,7 +316,9 @@ class Migration:
             # cmd_download_fill = cmd_download % (name, value)
             cmd_download_fill = cmd_download % value
             cmd = f"{cmd_cd % dir_path};{cmd_download_fill}"
-            file_name = os.path.join(dir_path, urllib.parse.unquote(value.rsplit("/", 1)[1]))
+            file_name = os.path.join(
+                dir_path, urllib.parse.unquote(value.rsplit("/", 1)[1])
+            )
             lst_cmd_download.append((cmd, file_name))
 
         for key, value in self.dct_note.items():
