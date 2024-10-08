@@ -1,0 +1,64 @@
+<odoo>
+    <template id="snippet_growth_calculator" name="Growth Calculator Snippet">
+        <section class="growth-calculator o_snippet" data-oe-type="snippet">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-md-12">
+                        <div class="calculator-box">
+                            <h3>Calculateur de Percentile et d'IMC</h3>
+                            <hr/>
+                            <div class="donnees-group">
+                                <div class="formulaire">
+                                    <div class="tranche-age">
+                                        <input type="radio" id="bebe" name="ageGroup" value="Bebe" checked="checked"/>
+                                        <label for="bebe">Bébé (0-24 mois)</label>
+                                        <input type="radio" id="enfant" name="ageGroup" value="Enfant"/>
+                                        <label for="enfant">Enfant (25-60 mois)</label>
+                                    </div>
+                                    <div class="form-floating-container">
+                                        <div class="form-floating mb-3">
+                                            <input type="number" id="floatingAge" class="form-control floatingAge" placeholder="" step="0.5" min="0" max="60" />
+                                            <label for="floatingAge">Âge (0-60 Mois)</label>
+                                            <span class="ageError text-danger"></span>
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            <input type="number" id="floatingWeight" class="form-control floatingWeight" placeholder="" step="0.5" min="2" max="30" />
+                                            <label for="floatingWeight">Poids (en kg)</label>
+                                            <span class="weightError text-danger"></span>
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            <input type="number" id="floatingHeight" class="form-control floatingHeight" placeholder="" step="0.5" min="49" max="125" />
+                                            <label for="floatingHeight">Taille (en cm)</label>
+                                            <span class="heightError text-danger"></span>
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            <select id="floatingSex" class="form-control form-select floatingSex">
+                                                <option value="" disabled="disabled" selected="selected">Choisissez le sexe</option>
+                                                <option value="true">Garçon</option>
+                                                <option value="false">Fille</option>
+                                            </select>
+                                            <label for="floatingSex">Sexe</label>
+                                            <span class="sexError text-danger"></span>
+                                        </div>
+                                        <button type="button" class="btn btn-primary calculateButton">
+                                            <i class="fas fa-calculator"></i> CALCULER
+                                        </button>
+                                        <button type="button" class="btn btn-reset resetButton">
+                                            <i class="fas fa-redo"></i> RÉINITIALISER
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="image-container">
+                                    <canvas id="canvasIMC" style="display:none;"></canvas>
+                                    <canvas id="canvasPoids" style="display:none;"></canvas>
+                                    <div id="pointRouge" style="display:none;"></div>
+                                </div>
+                            </div>
+                            <div id="resultats"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+</odoo>
