@@ -1,2 +1,0 @@
-from .post_install import set_oversea_department_on_partner
-from .pre_init_hook import create_fr_oversea_state_xmlid

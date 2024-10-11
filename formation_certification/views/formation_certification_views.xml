@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Tree View -->
+        <record id="view_formation_certification_tree" model="ir.ui.view">
+            <field name="name">formation.certification.tree</field>
+            <field name="model">formation.certification</field>
+            <field name="arch" type="xml">
+                <tree string="Certifications">
+                    <field name="name"/>
+                    <field name="formation_number"/>
+                    <field name="formation_title"/>
+                    <field name="completion_date"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_formation_certification_form" model="ir.ui.view">
+            <field name="name">formation.certification.form</field>
+            <field name="model">formation.certification</field>
+            <field name="arch" type="xml">
+                <form string="Certification">
+                    <header>
+                        <button name="send_attestation_email" string="Envoyer Attestation" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'generated')]}"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="formation_number"/>
+                            <field name="formation_title"/>
+                            <field name="completion_date"/>
+                            <field name="attestation_file" filename="name"/>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search View -->
+        <record id="view_formation_certification_search" model="ir.ui.view">
+            <field name="name">formation.certification.search</field>
+            <field name="model">formation.certification</field>
+            <field name="arch" type="xml">
+                <search string="Rechercher des Certifications">
+                    <field name="name"/>
+                    <field name="formation_number"/>
+                    <field name="formation_title"/>
+                    <field name="completion_date"/>
+                    <filter string="Brouillon" name="draft" domain="[('state','=','draft')]"/>
+                    <filter string="Généré" name="generated" domain="[('state','=','generated')]"/>
+                    <filter string="Envoyé" name="sent" domain="[('state','=','sent')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="État" name="state" context="{'group_by':'state'}"/>
+                        <filter string="Date de Complétion" name="completion_date" context="{'group_by':'completion_date'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_formation_certification" model="ir.actions.act_window">
+            <field name="name">Certifications</field>
+            <field name="res_model">formation.certification</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_formation_certification_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Créez votre première certification !
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>
