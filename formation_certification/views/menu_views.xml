@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menu Root -->
+        <menuitem id="menu_harmonie_certification_root"
+                  name="Harmonie Certification"
+                  web_icon="harmonie_certification,static/description/icon.png"
+                  sequence="10"/>
+
+        <!-- Sub-menu for Certifications -->
+        <menuitem id="menu_certification"
+                  name="Certifications"
+                  parent="menu_harmonie_certification_root"
+                  action="action_formation_certification"
+                  sequence="10"/>
+
+        <!-- Sub-menu for Dashboard -->
+        <menuitem id="menu_certification_dashboard"
+                  name="Tableau de bord"
+                  parent="menu_harmonie_certification_root"
+                  action="action_certification_dashboard"
+                  sequence="5"/>
+    </data>
+</odoo>

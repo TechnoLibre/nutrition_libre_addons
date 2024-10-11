@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="HarmonieCertificationDashboard">
+        <div class="o_harmonie_certification">
+            <div class="o_dashboard">
+                <div class="o_box">
+                    <div class="o_primary">
+                        <t t-esc="widget.total_certifications || 0"/>
+                    </div>
+                    <div class="o_secondary">Certifications Totales</div>
+                </div>
+                <div class="o_box">
+                    <div class="o_primary">
+                        <t t-esc="widget.draft_certifications || 0"/>
+                    </div>
+                    <div class="o_secondary">Certifications en Brouillon</div>
+                </div>
+                <div class="o_box">
+                    <div class="o_primary">
+                        <t t-esc="widget.sent_certifications || 0"/>
+                    </div>
+                    <div class="o_secondary">Certifications Envoyées</div>
+                </div>
+            </div>
+            <div class="o_action_buttons">
+                <button class="btn btn-primary o_certification_action" data-action="action_formation_certification">
+                    Voir Toutes les Certifications
+                </button>
+                <button class="btn btn-secondary o_certification_action" data-action="action_create_certification">
+                    Créer une Certification
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>
