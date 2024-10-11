@@ -1,0 +1,32 @@
+.aliments-list {
+    background-color: #f8f9fa;
+    padding: 2rem 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+    h2 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+    .list-group-item {
+        transition: background-color 0.3s ease;
+
+        &:hover {
+            background-color: #e9ecef;
+        }
+    }
+
+    #add-aliment-form {
+        margin-top: 1.5rem;
+
+        .form-control {
+            border-radius: 4px 0 0 4px;
+        }
+
+        .btn-primary {
+            border-radius: 0 4px 4px 0;
+        }
+    }
+}
