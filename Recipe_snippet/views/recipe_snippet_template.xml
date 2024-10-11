@@ -24,7 +24,7 @@
                 <form id="new-recipe-form">
                     <div class="mb-3">
                         <label for="recipe-name-input" class="form-label">Nom de la recette:</label>
-                        <input type="text" id="recipe-name-input" name="name" class="form-control" required>
+                        <input type="text" id="recipe-name-input" name="name" class="form-control" />
                     </div>
 
                     <h3>Ingrédients</h3>

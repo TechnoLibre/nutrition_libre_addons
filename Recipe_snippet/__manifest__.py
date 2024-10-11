@@ -9,18 +9,18 @@
     """,
     'author': 'Oussama Bouhlel',
     'website': 'https://www.harmoniesante.com',
-    'depends': ['website'],  
+    'depends': ['website'],
     'data': [
-        'views/recipe_snippet_template.xml',  
+        'views/recipe_snippet_template.xml',
     ],
     'assets': {
         'web.assets_frontend': [
-            'Snippet_recettes/static/src/js/recipe_snippet.js', 
-            'Snippet_recettes/static/css/recipe_snippet.css', 
+            'Snippet_recettes/static/src/js/recipe_snippet.js',
+            'Snippet_recettes/static/css/recipe_snippet.css',
         ],
     },
     'installable': True,
     'application': True,
     'auto_install': False,
-    'license': 'AGPL-3',  
+    'license': 'AGPL-3',
 }

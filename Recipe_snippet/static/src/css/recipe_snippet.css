@@ -1,0 +1,110 @@
+/* Style général pour le conteneur des recettes */
+#recipe-section {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Liste des recettes */
+#recipe-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#recipe-list li {
+    padding: 15px;
+    border: 1px solid #e2e2e2;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#recipe-list li:hover {
+    background-color: #f1f1f1;
+}
+
+/* Style pour les détails de la recette */
+#recipe-details-container {
+    background-color: #f7f7f7;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#ingredient-list, #step-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#ingredient-list li, #step-list li {
+    padding: 10px;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+#ingredient-list li:last-child, #step-list li:last-child {
+    border-bottom: none;
+}
+
+/* Formulaire d'ajout de recette */
+#new-recipe-form {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#new-recipe-form input, #new-recipe-form select, #new-recipe-form textarea {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.ingredient-entry, .step-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ingredient-entry input, .step-entry input, .step-entry textarea, .step-entry select {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.remove-ingredient, .remove-step {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Boutons */
+.btn {
+    margin-top: 10px;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+}
+
+.btn-primary {
+    background-color: #007bff;
+}
+
+/* Animation de transition pour les boutons */
+.btn:hover {
+    opacity: 0.8;
+}
+
+/* Cache les conteneurs par défaut */
+#recipe-details-container, #add-recipe-form {
+    display: none;
+}

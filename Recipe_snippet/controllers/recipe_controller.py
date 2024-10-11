@@ -2,7 +2,7 @@ from odoo import http
 from odoo.http import request
 
 class RecipeController(http.Controller):
-    
+
     @http.route('/get_recipes', type='json', auth='public', methods=['POST'])
     def get_recipes(self):
         recipes = request.env['my_module.recipe'].sudo().search([], order='name')
